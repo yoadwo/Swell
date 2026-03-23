@@ -12,13 +12,14 @@ A Zepp OS Mini Program for Amazfit Balance 2 that displays surf forecasts at a g
 
 ## Running Locally
 
-From this directory:
+From the app directory (`swell/`):
 
 ```bash
+cd swell
 zeus dev
 ```
 
-This starts the dev server. Use the Zepp Simulator or scan the QR code with the Zepp App to preview on your watch.
+`zeus dev` handles dependencies (including `npm install`) and starts the dev server. Use the Zepp Simulator or scan the QR code with the Zepp App to preview on your watch.
 
 ## Docs
 
