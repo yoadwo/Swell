@@ -1,13 +1,13 @@
 ---
 name: Swell Surf Forecast App
-overview: Build a Zepp OS Mini Program for Amazfit Balance 2 that displays surf forecasts (wave height, period, direction, wind, water temp) with a Canvas graph, powered by a Side Service (placeholder data initially), configurable via Settings App, with offline cache and optional Workout Extension for Surf mode.
+overview: Build a Zepp OS Mini Program for Amazfit watches that displays surf forecasts with a traffic light "Swell Index" system, configurable via Settings App (Israel beaches), with offline cache and Workout Extension.
 todos: []
 isProject: false
 ---
 
 # Swell - Surf Forecast Watch App Implementation Plan
 
-**App name:** **Swell** — evocative of the core surf concept; short, memorable, and fits the watch UI.
+**App name:** **Swell** — evocative of the core surf concept; short, memorable.
 
 ---
 
@@ -15,34 +15,31 @@ isProject: false
 
 ```mermaid
 flowchart TB
-    subgraph Watch["Amazfit Balance 2"]
+    subgraph Watch["Amazfit Watch"]
+        MainPage[Main Page - Swell Index]
+        ConditionsPage[Conditions Page]
+        WeatherPage[Weather Page]
         ForecastPage[Forecast Page]
-        GraphPage[Graph Page]
+        HelpPage[Help Page]
         WorkoutExt[Workout Extension]
         Cache[Local Cache]
-        ForecastPage --> Cache
-        GraphPage --> Cache
-        WorkoutExt --> Cache
     end
-    
+
     subgraph Phone["Zepp App on Phone"]
         SideService[Side Service]
         SettingsApp[Settings App]
         SettingsStorage[(settingsStorage)]
-        SideService --> SettingsStorage
-        SettingsApp --> SettingsStorage
     end
-    
-    subgraph DataSource["Data Source"]
-        Placeholder[Placeholder Constant]
-        OpenMeteo[Open-Meteo API - later]
-    end
-    
-    ForecastPage <-->|BLE request| SideService
-    SideService -->|v1: returns| Placeholder
+
+    SettingsApp -->|writes| SettingsStorage
+    SideService -->|reads| SettingsStorage
+    SideService -->|BLE| MainPage
+    MainPage --> Cache
+    ConditionsPage --> Cache
+    WeatherPage --> Cache
+    ForecastPage --> Cache
+    WorkoutExt --> Cache
 ```
-
-
 
 ---
 
@@ -50,132 +47,252 @@ flowchart TB
 
 ### Project Location and Independence
 
-- **Create as sibling:** The app lives at `c:\Users\yoadw\code\amazfit\swell\` — a **new, independent project** next to `hello-world`, not derived from it.
+- **Create as sibling:** The app lives at `c:\Users\yoadw\code\amazfit\swell\` — a **new, independent project** next to `hello-world`.
 - **Scaffold:** Run `zeus create swell` in `c:\Users\yoadw\code\amazfit\`. During setup: select **APP** type, **include app-side**, **include settings**.
 
 ### Device Target
 
-- **Target device:** Amazfit Balance 2
-- **API level:** 4.2 (Balance 2 runs Zepp OS 5.0)
-- **Runtime config:** `apiVersion.compatible: "4.2"`, `apiVersion.target: "4.2"`, `apiVersion.minVersion: "4.0"`
-- **Display:** Round 480x480 — use `gt` target with `dw: 480` (see [calories](https://github.com/zepp-health/zeppos-samples/tree/main/application/3.0/calories) for `page/gt/` structure)
+- **Target device:** Amazfit Balance 2 (Zepp OS 5.0)
+- **API level:** 4.2 minimum (compatible with 5.0)
+- **Runtime config:** `apiVersion.compatible: "4.2"`, `apiVersion.target: "4.2"`
+- **Display:** Round 480x480 — use `gt` target with `dw: 480`
 
 ### Dependencies and Structure References
 
 - **Dependencies:** `@zeppos/zml`, `@zeppos/device-types`
 - **Structure references:**
-  - [fetch-api](https://github.com/zepp-health/zeppos-samples/tree/main/application/3.0/fetch-api): Side Service + `onRequest`, `this.request({ method: "GET_DATA" })` from page, layout `index.[pf].layout.js`
-  - [calories](https://github.com/zepp-health/zeppos-samples/tree/main/application/3.0/calories): `gt` target, `page/gt/` pages, utils for storage
-  - [helloworld3](hello-world/node_modules/@zeppos/zml/examples/helloworld3): Settings App, app-side with `fetch`, `onSettingsChange`
+  - [fetch-api](https://github.com/zepp-health/zeppos-samples/tree/main/application/3.0/fetch-api): Side Service + `onRequest`, `this.request` from page
+  - [calories](https://github.com/zepp-health/zeppos-samples/tree/main/application/3.0/calories): `gt` target, `page/gt/` pages
+  - [helloworld3](hello-world/node_modules/@zeppos/zml/examples/helloworld3): Settings App, app-side with `fetch`
 
 ### Key Configuration (app.json)
 
 - `appId`: unique ID
 - `appName`: "Swell"
-- Permissions: `device:os.geolocation`, `device:os.local_storage`, `data:os.device.info`
-- Targets: `module.page.pages`, `module.app-side.path`, `module.setting.path`, optionally `module.data-widget` for Workout Extension
+- Permissions: `device:os.local_storage`, `data:os.device.info`
+- Targets: `module.page.pages`, `module.app-side.path`, `module.setting.path`
 
 ---
 
 ## Implementation Phases
 
-### Phase 1: Core Infrastructure
+### Phase 1: Settings App (FR-1)
 
-**1.1 App entry and BLE messaging**
+**Goal:** Allow user to select a beach from a predefined list of Israel beaches.
 
-- `app.js`: Use `BaseApp` from ZML with `globalData` for shared forecast cache and messaging. Initialize messaging plugin for BLE communication with Side Service.
-- Ensure app-side and setting modules are registered in `app.json`.
+**1.1 Define beach data**
 
-**1.2 Side Service – forecast fetching (placeholder first)**
-
-- **File:** `app-side/index.js`
-- **Pattern:** Follow [fetch-api app-side](https://github.com/zepp-health/zeppos-samples/tree/main/application/3.0/fetch-api): `BaseSideService`, `onRequest(req, res)` with custom method (e.g. `GET_FORECAST`).
-- **v1 implementation:** Return a **placeholder / constant response** — no API call yet. Defer Open-Meteo integration to a later step.
-- **Placeholder payload shape** (aligned with future Open-Meteo Marine API normalization):
-  - Open-Meteo Marine API returns: `current` (`wave_height`, `wave_direction`, `wave_period`, `sea_surface_temperature`), `hourly` (arrays: `time` ISO8601, `wave_height`, `wave_direction`, `wave_period`, `sea_surface_temperature`). Wind is not in Marine API; use Weather API later or mock in placeholder.
-  - Normalized payload for watch:
-
-```json
-{
-  "spot": "Santa Monica Pier",
-  "updatedAt": 1710764400,
-  "current": {
-    "waveHeight": 1.8,
-    "wavePeriod": 12,
-    "waveDirection": 315,
-    "windSpeed": 15,
-    "windDirection": 45,
-    "waterTemp": 18
-  },
-  "hourly": [
-    { "time": 1710720000, "waveHeight": 1.2, "score": 6 },
-    { "time": 1710723600, "waveHeight": 1.5, "score": 7 }
-  ]
-}
+- Create `setting/beaches.js` with hardcoded list:
+```javascript
+export const ISRAEL_BEACHES = [
+  { name: "Frishman", lat: 32.0949, lon: 34.7726 },
+  { name: "Hilton", lat: 32.0989, lon: 34.7710 },
+  // ... more beaches (user will provide full list)
+];
 ```
 
-- Side Service: read `params.lat`, `params.lon` or `settingsStorage.getItem('spot')`; return constant payload matching above. `res(null, payload)`.
-- **Later step:** Replace constant with `fetch()` to Open-Meteo Marine (and optionally Weather for wind).
-
-**1.3 Settings App – spot configuration**
+**1.2 Settings App UI**
 
 - **File:** `setting/index.js`
-- **Pattern:** Use `AppSettingsPage` with `props.settingsStorage` (see [helloworld3/setting](hello-world/node_modules/@zeppos/zml/examples/helloworld3/setting/index.js)).
-- **UI:** Text inputs for spot name, latitude, longitude; optional list of presets ( Pipeline, Bondi, etc.).
-- **Storage key:** e.g. `spot` → `JSON.stringify({ name, lat, lon })`.
+- **Pattern:** Use `AppSettingsPage` with `props.settingsStorage`
+- **UI:** List of beach names (from `ISRAEL_BEACHES`)
+- **On click:** Save selected beach to `settingsStorage`:
+```javascript
+settingsStorage.setItem('selectedBeach', JSON.stringify({ name, lat, lon }));
+```
 - No `fetch`, no direct watch communication.
 
 ---
 
-### Phase 2: Device App – Forecast and Graph Pages
+### Phase 2: Main Page - Swell Index (FR-2)
 
-**2.1 Forecast page (main screen)**
+**Goal:** Display traffic light "Go/No-Go" indicator based on score.
+
+**2.1 Main page layout**
+
+- **Path:** `page/gt/main/index.page.js`
+- **Layout:** `index.page.r.layout.js` (round 480x480)
+- **UI Elements:**
+  - Title: "Swell Index"
+  - Subtitle: Selected beach name (from cache/storage)
+  - Icon: Surfboard 🏄 / Wave 🌊 / Coffee ☕
+  - Text: "Go Crazy" / "Have Fun" / "Better Get Coffee"
+
+**2.2 Traffic light logic**
+
+```javascript
+function getTrafficLightState(score) {
+  if (score >= 7) return { color: 0x00FF00, icon: 'surfboard', text: 'Go Crazy' };
+  if (score >= 4) return { color: 0xFFFF00, icon: 'wave', text: 'Have Fun' };
+  return { color: 0xFF0000, icon: 'coffee', text: 'Better Get Coffee' };
+}
+```
+
+**2.3 Mock score (temporary)**
+
+- Initially: hardcode a mock score (e.g., `const MOCK_SCORE = 8`) to test UI.
+- Read beach name from local cache (`@zos/storage`).
+
+---
+
+### Phase 3: Side Service - Fetch Forecast (FR-7)
+
+**Goal:** Side Service fetches forecast and sends to Device App.
+
+**3.1 Side Service skeleton**
+
+- **File:** `app-side/index.js`
+- **Pattern:** `BaseSideService`, `onRequest(req, res)`
+- **Method:** `GET_FORECAST`
+
+**3.2 Read beach from storage**
+
+```javascript
+const selectedBeach = JSON.parse(settingsStorage.getItem('selectedBeach'));
+```
+
+**3.3 Fetch forecast (placeholder)**
+
+- **V1:** Return constant/placeholder payload (no real API yet).
+- **Payload shape:**
+```json
+{
+  "beach": "Frishman",
+  "score": 8,
+  "current": {
+    "waveHeight": 1.5,
+    "wavePeriod": 12,
+    "waveDirection": 315,
+    "windSpeed": 10,
+    "windDirection": 90
+  },
+  "sunrise": "06:15",
+  "sunset": "19:30",
+  "weather": {
+    "temperature": 28,
+    "uvIndex": 7
+  },
+  "forecast": [
+    { "day": "Mon", "waveHeightMin": 1.2, "waveHeightMax": 1.8, "period": 12, "windSpeed": 10, "windDirection": 90, "score": 8 },
+    { "day": "Tue", "waveHeightMin": 1.0, "waveHeightMax": 1.5, "period": 10, "windSpeed": 15, "windDirection": 100, "score": 6 }
+  ]
+}
+```
+
+**3.4 Score calculation - OPEN QUESTION**
+
+> **Ask user:** Should the composite score (0-10) be calculated:
+> - **Option A:** On the phone (Side Service) before sending to watch?
+> - **Option B:** On the watch (Device App) after receiving raw data?
+>
+> **Trade-offs:**
+> - Phone: More processing power, easier to adjust algorithm without watch update.
+> - Watch: More transparent to user, works offline once data is cached.
+
+**3.5 Send to watch via BLE**
+
+```javascript
+res(null, payload);
+```
+
+---
+
+### Phase 4: Connect Main Page to Real Data
+
+**4.1 Device App requests forecast**
+
+- Use `this.request({ method: "GET_FORECAST" })` to trigger Side Service.
+- Receive payload via BLE.
+
+**4.2 Cache forecast**
+
+- Store payload in `@zos/storage` under key `forecast_cache`.
+- Store timestamp under `forecast_timestamp`.
+
+**4.3 Update UI with real score**
+
+- Replace mock score with `payload.score`.
+- Show staleness indicator if needed.
+
+---
+
+### Phase 5: Conditions Page (FR-3)
+
+**Goal:** Display detailed surf conditions.
+
+**5.1 Page structure**
+
+- **Path:** `page/gt/conditions/index.page.js`
+- Read from cached forecast payload.
+
+**5.2 Display parameters**
+
+| Parameter | Source |
+|-----------|--------|
+| Wave Height | `current.waveHeight` |
+| Wave Direction | `current.waveDirection` |
+| Wave Period | `current.wavePeriod` |
+| Wind Speed | `current.windSpeed` |
+| Wind Direction | `current.windDirection` |
+| Sunrise | `sunrise` |
+| Sunset | `sunset` |
+
+---
+
+### Phase 6: Weather Page (FR-4)
+
+**Goal:** Display current weather conditions.
+
+**6.1 Page structure**
+
+- **Path:** `page/gt/weather/index.page.js`
+
+**6.2 Display parameters**
+
+| Parameter | Source |
+|-----------|--------|
+| Temperature | `weather.temperature` |
+| UV Index | `weather.uvIndex` |
+
+---
+
+### Phase 7: Forecast Page (FR-5)
+
+**Goal:** Display 3-4 day outlook.
+
+**7.1 Page structure**
 
 - **Path:** `page/gt/forecast/index.page.js`
-- **Pattern:** Follow [fetch-api page](https://github.com/zepp-health/zeppos-samples/blob/main/application/3.0/fetch-api/page/index.js): `BasePage`, `this.request({ method: "GET_FORECAST" })` (or `GET_DATA`-style), layout from `index.[pf].layout.js`.
-- **Layout:** Use layout file (e.g. `index.page.r.layout.js`) for round display. Use `hmUI.widget.TEXT` for:
-  - Spot name
-  - Wave height (m), period (s), direction
-  - Wind speed, direction (if available)
-  - Water temp
-  - Staleness: "Updated X min ago" or "Offline – last sync Xh ago"
-- **Cache:** On successful response, persist to `@zos/storage` (or in-memory global) and update UI.
-- **Offline:** If request fails or no BLE, load from cache and show offline badge.
 
-**2.2 Graph page**
+**7.2 Display per day**
 
-- **Path:** `page/gt/graph/index.page.js`
-- **Widget:** `hmUI.widget.CANVAS` for line graph.
-- **Data source:** `hourly` from cached forecast payload.
-- **Drawing:**
-  - `setPaint({ color, line_width })`, `drawLine`, `drawText` (see [RESEARCH_AND_DESIGN §7](surf/RESEARCH_AND_DESIGN.md)).
-  - X-axis: time labels (e.g. 6am, 9am, 12pm). Map `hourly[i].time` → x position.
-  - Y-axis: wave height (m). Map `hourly[i].waveHeight` → y position (inverted for screen coords).
-  - "Now" marker: vertical line at current hour.
-- **Navigation:** Swipe or button to switch between forecast and graph (configure pages in `app.json`).
-
-**2.3 Page list and navigation**
-
-- `module.page.pages`: `["page/gt/forecast/index.page", "page/gt/graph/index.page"]` (forecast first).
-- Use `hmUI` or `@zos/router` for navigation between pages if needed.
+- Day name, wave height range, period, wind, score (color-coded).
+- Horizontal scroll between days.
 
 ---
 
-### Phase 3: Offline Cache and Robustness
+### Phase 8: Help Page (FR-6)
 
-- **Storage:** Use `@zos/storage` to save last forecast payload under key `forecast_cache`.
-- **Load on launch:** Before requesting, try loading cache; render immediately if present.
-- **Staleness:** Store `updatedAt` with payload; compute "X min ago" or "Xh ago" and display.
-- **Error handling:** Timeout for BLE request; fallback to cache on failure.
+**Goal:** Explain score calculation.
+
+**8.1 Page structure**
+
+- **Path:** `page/gt/help/index.page.js`
+
+**8.2 Content**
+
+- Title: "How It Works"
+- Formula explanation
+- Disclaimer
 
 ---
 
-### Phase 4: Workout Extension (Optional – API 3.6+)
+### Phase 9: Workout Extension (Optional)
 
-- **app.json:** Add `module.data-widget` with sport type for Surf (check Zepp OS docs for exact sport ID).
-- **Path:** `page/workout-extension/index.page.js`
-- **Behavior:** Read forecast from same cache only (no BLE request). Display compact view: wave height, period, score.
-- **Note:** Workout Extension API and exact `data-widget` config may require Context7/Zepp OS docs lookup for Balance 2 / Surf sport type.
+**Goal:** Show cached forecast during surf workout.
+
+- Register in `app.json` under `module.data-widget`.
+- Read-only cache view.
 
 ---
 
@@ -187,72 +304,55 @@ swell/
 ├── app.json
 ├── package.json
 ├── assets/
-│   └── gt/           # Icons for round display
+│   └── gt/
+│       ├── surfboard.png
+│       ├── wave.png
+│       └── coffee.png
 ├── page/
 │   └── gt/
+│       ├── main/
+│       │   ├── index.page.js
+│       │   └── index.page.r.layout.js
+│       ├── conditions/
+│       │   ├── index.page.js
+│       │   └── index.page.r.layout.js
+│       ├── weather/
+│       │   ├── index.page.js
+│       │   └── index.page.r.layout.js
 │       ├── forecast/
 │       │   ├── index.page.js
 │       │   └── index.page.r.layout.js
-│       ├── graph/
-│       │   ├── index.page.js
-│       │   └── index.page.r.layout.js
-│       └── workout-extension/   # Phase 4
-│           └── index.page.js
+│       └── help/
+│           ├── index.page.js
+│           └── index.page.r.layout.js
 ├── app-side/
 │   └── index.js
 ├── setting/
-│   └── index.js
+│   ├── index.js
+│   └── beaches.js
 └── i18n/
     └── en-US.po
 ```
 
 ---
 
-## Technical Decisions
+## Implementation Order Summary
 
-
-| Decision        | Choice                                                                     |
-| --------------- | -------------------------------------------------------------------------- |
-| Data source v1  | Placeholder constant matching Open-Meteo payload shape. Real API later.    |
-| Forecast API    | Open-Meteo Marine (wave data), Weather API for wind — deferred.            |
-| BLE / messaging | ZML `this.request({ method: "GET_FORECAST" })` + Side Service `onRequest`. |
-| Cache           | `@zos/storage` for persistence across app restarts.                        |
-| Graph           | Canvas widget with `drawLine` segments connecting hourly points.           |
-| Settings        | `settingsStorage` only; Side Service reads on each fetch.                  |
-| Build tool      | Zeus CLI (`zeus build`, `zeus preview`) for simulator and device.          |
-
+1. **Phase 1:** Settings App — beach list, save to storage
+2. **Phase 2:** Main Page — traffic light UI with mock score
+3. **Phase 3:** Side Service — fetch skeleton, placeholder data
+4. **Phase 4:** Connect Main Page to real data from Side Service
+5. **Phase 5:** Conditions Page — detailed surf params
+6. **Phase 6:** Weather Page — temperature, UV index
+7. **Phase 7:** Forecast Page — 3-4 day outlook
+8. **Phase 8:** Help Page — score explanation
+9. **Phase 9:** Workout Extension — cached view during workout
 
 ---
 
-## Out of Scope (v1)
+## Open Questions
 
-- Session tracking (HR, distance, GPS) — deferred to v2
-- Multiple saved spots / switching from watch
-- Notifications
-- Precise surfability scoring algorithm
-- Storm Glass / Surfline (Open-Meteo sufficient for MVP)
-
----
-
-## Implementation Order
-
-1. Scaffold project (sibling to hello-world), `app.json` (API 4.2, `gt` target), `app.js` with BaseApp.
-2. Side Service: `onRequest` for `GET_FORECAST`, return **placeholder constant** (no API call).
-3. Settings App: spot form, save to `settingsStorage`.
-4. Forecast page: `this.request({ method: "GET_FORECAST" })`, display text, cache to storage.
-5. Offline: load cache on init, show staleness when offline.
-6. Graph page: Canvas widget, render `hourly` data.
-7. Workout Extension: data-widget config, read-only cache view (if Balance 2 supports Surf workout type).
-8. **Later:** Replace placeholder with Open-Meteo Marine API `fetch()` in Side Service.
-
----
-
-## References
-
-- [PRD](surf/PRD.md) — requirements, terminology
-- [RESEARCH_AND_DESIGN](surf/RESEARCH_AND_DESIGN.md) — architecture, payload shape, APIs
-- [zeppos-samples fetch-api](https://github.com/zepp-health/zeppos-samples/tree/main/application/3.0/fetch-api) — Side Service, `this.request`, layout
-- [zeppos-samples calories](https://github.com/zepp-health/zeppos-samples/tree/main/application/3.0/calories) — `gt` target, page structure, sensor/utils
-- [helloworld3](hello-world/node_modules/@zeppos/zml/examples/helloworld3) — Settings App, app-side with fetch
-- [Open-Meteo Marine API](https://open-meteo.com/en/docs/marine-weather-api) — response shape for placeholder and future integration
-- Context7 MCP: `zepp-health/zeppos-docs` for Canvas, storage, Workout Extension details
+1. **Score calculation location:** Phone (Side Service) or Watch (Device App)?
+2. **Beach list:** Which specific Israel beaches to include?
+3. **Score thresholds:** Exact values for green/yellow/red traffic lights?
+4. **Forecast API:** Which provider to use for real data (Open-Meteo Marine, Storm Glass, other)?

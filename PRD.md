@@ -28,6 +28,35 @@ So we **must** split: Settings App = config UI + location; Side Service = fetch 
 
 The app provides **two entry points on the watch**: (1) the **Device App** — when the user taps the app icon, the Device App opens (forecast and graph pages) to check the forecast before heading out (request/cache data, then view); (2) a **Workout Extension** so that when the user starts the built-in Surf workout, the extension can show the cached forecast (and later, session stats). Forecast data is fetched by the **Side Service** on the phone and sent to the Device App; when the phone is disconnected, the watch shows the last synced (cached) forecast.
 
+### App Structure Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    MINI PROGRAM                              │
+├─────────────────────────────────────────────────────────────┤
+│                                                               │
+│  ┌─────────────────┐  ┌─────────────────┐                   │
+│  │  Settings App   │  │   Side Service  │                   │
+│  │  (Phone UI)     │  │   (Phone BG)    │                   │
+│  │  - Beach list   │  │   - Fetch API   │                   │
+│  │  - Save coords  │  │   - Send to watch│                  │
+│  └─────────────────┘  └─────────────────┘                   │
+│                                                               │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │              Device App (Watch)                         │ │
+│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐   │ │
+│  │  │   Main   │ │Conditions│ │ Weather  │ │Forecast  │   │ │
+│  │  │  Page    │ │  Page    │ │  Page    │ │  Page    │   │ │
+│  │  └──────────┘ └──────────┘ └──────────┘ └──────────┘   │ │
+│  │  ┌──────────┐ ┌──────────┐                              │ │
+│  │  │  Help    │ │ Workout  │                              │ │
+│  │  │  Page    │ │ Extension│                              │ │
+│  │  └──────────┘ └──────────┘                              │ │
+│  └─────────────────────────────────────────────────────────┘ │
+│                                                               │
+└─────────────────────────────────────────────────────────────┘
+```
+
 ### Target Device
 
 Any Amazfit watch running **Zepp OS v3+** (e.g., Amazfit Balance, GTR 4, T-Rex Ultra). Workout Extension requires **API_LEVEL 3.6+**.
@@ -56,67 +85,275 @@ Any Amazfit watch running **Zepp OS v3+** (e.g., Amazfit Balance, GTR 4, T-Rex U
 
 ---
 
-## 4. Scope
+## 4. App Pages (Detailed)
 
-### In Scope (v1)
+### 4.1 Settings App (Phone)
 
-- **Device App (watch):** forecast and graph pages; user taps the app icon to open the Device App, pull and view forecast before surfing.
-- **Workout Extension (watch):** optional module (data-widget) in the system Workout app for Surf mode, showing cached forecast (and later session data) during the workout.
-- **Forecast / graph screens:** key surf parameters (wave height, period, direction, wind, water temp) as text; Canvas-drawn graph over time.
-- **Side Service (phone):** only component that can fetch; gets forecast from surf API and sends it to the watch over BLE.
-- **Settings App (phone):** appears in Zepp App under device application settings; user picks/saves surf spot (lat/lon or name). No fetching.
-- **Offline cache:** watch stores the most recent forecast so both the Device App and the Workout Extension can show it when disconnected.
+**Location:** Zepp App → Device → App Settings → Swell
 
-### Out of Scope (v1)
+**Purpose:** Allow user to select their home surf spot from a predefined list.
 
-- Exact forecast API provider selection (treated as a pluggable placeholder; candidates include Open-Meteo Marine, Storm Glass, Surfline unofficial endpoints).
-- Precise scoring algorithm for "surfability" (placeholder weighted sum).
-- Session recording (BPM, GPS, distance) — deferred to v2.
-- Multiple saved spots / spot switching from the watch.
-- Notifications or alarms ("waves are good right now").
+**UI Elements:**
+- List of beaches in Israel (predefined, hardcoded)
+- Each beach item shows: beach name
+- On click: save beach coordinates to `settingsStorage`
+
+**Data Structure:**
+```javascript
+{
+  selectedBeach: {
+    name: "Frishman",
+    lat: 32.0949,
+    lon: 34.7726
+  }
+}
+```
+
+**Behavior:**
+- No API calls (Settings App cannot use `fetch()`)
+- Side Service reads this storage to know which location to fetch
 
 ---
 
-## 5. Functional Requirements
+### 4.2 Device App Pages (Watch)
 
-### FR-1: Forecast Display (Device App)
+The Device App contains the following swipeable pages:
 
-- When the user opens the Device App (tap app icon), request the latest forecast from the Side Service (when phone is paired).
-- Display: wave height (m/ft), wave period (s), wave direction, wind speed, wind direction, water temperature.
-- Show a staleness indicator ("Updated 10 min ago" / "Offline – last sync 3h ago").
-- Cache the last received payload so the Workout Extension and offline opens can use it.
+#### Page 1: Main Page ("Swell Index")
 
-### FR-2: Forecast Graph
+**Purpose:** At-a-glance "should I surf?" indicator using a traffic light system.
 
-- Render a line graph on a Canvas widget.
-- X-axis: time (hours). Y-axis: wave height or composite score.
-- The graph should be scrollable or show a fixed 24-hour window with a "now" marker.
+**UI Elements:**
+| Element | Content |
+|---------|---------|
+| Title | "Swell Index" |
+| Subtitle | Selected beach name (from storage) |
+| Traffic Light Display | Conditional based on composite score: |
 
-### FR-3: Side Service – Fetch Forecast
+**Traffic Light Logic:**
 
-- Accept a message from the Device App ("get forecast", optionally with lat/lon).
-- Read the user's configured spot from `settingsStorage` (or use coordinates from the message).
-- Call the forecast API via `fetch`.
-- Parse the response into a compact payload and send it back to the watch via MessageBuilder.
+| Score Range | Color | Icon | Text |
+|-------------|-------|------|------|
+| 7–10 (Excellent/Good) | 🟢 Green | 🏄 Surfboard | "Go Crazy" |
+| 4–6 (Fair/Mediocre) | 🟡 Yellow | 🌊 Wave | "Have Fun" |
+| 0–3 (Poor/Flat) | 🔴 Red | ☕ Coffee | "Better Get Coffee" |
 
-### FR-4: Settings App (Device application settings in Zepp App)
+**Behavior:**
+- Read cached forecast on launch
+- When phone is paired: request fresh data from Side Service
+- Show staleness indicator if data is old
 
-- The Settings App is the UI that appears when the user opens this app’s settings from the Zepp App (e.g. under device application settings for the installed Mini Program).
-- Provide a simple form where the user can:
-  - Enter a spot name (informational).
-  - Enter latitude and longitude (or pick from a short list of well-known spots).
-- Persist the selection in `settingsStorage`. The Side Service (not the Settings App) reads this and performs the HTTP fetch.
+---
 
-### FR-5: Offline Cache
+#### Page 2: Conditions Page
 
-- The Device App stores the last received forecast payload (e.g., in `@zos/storage` or an in-memory global).
-- Device App: on launch, if the phone is not connected, display the cached data with a clear "offline" indicator.
-- Workout Extension: reads cached forecast only (no BLE request from the extension); show same offline/staleness indicator if applicable.
+**Purpose:** Detailed surf conditions for the selected beach.
 
-### FR-6: Workout Extension (Surf mode)
+**UI Elements:**
 
-- Register a Workout Extension in `app.json` under `data-widget` for the Surf (or relevant) sport type (API_LEVEL 3.6+).
-- The extension page reads the same cached forecast as the Device App and displays a compact forecast view (e.g. wave height, period, score) so the user can see conditions during the workout without opening the Device App.
+| Parameter | Display Format |
+|-----------|----------------|
+| Wave Height | X.X m / X.X ft |
+| Wave Direction | Arrow + degrees (e.g., ↗ 315°) |
+| Wave Period | XX seconds |
+| Wind Speed | XX km/h |
+| Wind Direction | Arrow + cardinal (e.g., ← W) |
+| Sunrise | HH:MM |
+| Sunset | HH:MM |
+
+**Behavior:**
+- Shows data from most recent forecast fetch
+- All values from cached payload
+
+---
+
+#### Page 3: Weather Page
+
+**Purpose:** Current weather conditions at the beach.
+
+**UI Elements:**
+
+| Parameter | Display Format |
+|-----------|----------------|
+| Temperature | XX°C / XX°F |
+| UV Index | Numeric (0–11+) + descriptor (Low/Moderate/High/Very High/Extreme) |
+
+**Behavior:**
+- Fetched alongside surf data
+- UV index especially relevant for surfers planning session length
+
+---
+
+#### Page 4: Forecast Page
+
+**Purpose:** Multi-day outlook for planning sessions.
+
+**UI Elements:**
+- 3–4 day forecast table/cards
+- Per day shows:
+  - Day name (e.g., "Mon", "Tue")
+  - Wave height range (e.g., "1.2–1.8m")
+  - Period (e.g., "12s")
+  - Wind (speed + direction)
+  - Composite score (color-coded)
+
+**Behavior:**
+- Horizontal scroll or swipe between days
+- Data from single API call (multi-day forecast)
+
+---
+
+#### Page 5: Help Page
+
+**Purpose:** Explain how the "Swell Index" (composite score) is calculated.
+
+**UI Elements:**
+- Title: "How It Works"
+- Explanation text (scrollable)
+- Formula breakdown:
+
+**Score Calculation (0–10 scale):**
+```
+Score = (Wave Height × 0.3) + (Wave Period × 0.3) + (Wave Direction × 0.2) + (Wind × 0.2)
+
+Where:
+- Wave Height: 0–10 scale (ideal: 1.5–2.5m for intermediate)
+- Wave Period: 0–10 scale (ideal: 12–16s)
+- Wave Direction: 0–10 based on alignment with beach break
+- Wind: 0–10 (offshore = high, onshore = low)
+```
+
+- Note: "Scores are suggestions. Always check conditions yourself and surf at your own risk."
+
+---
+
+### 4.3 Workout Extension (Watch)
+
+**Location:** Workout app → Surf → Extension view
+
+**Purpose:** Show cached forecast during an active surf workout.
+
+**UI Elements:**
+- Compact view of current conditions
+- Wave height, period, score
+- No interaction needed (read-only)
+
+**Behavior:**
+- Reads same cached forecast as Device App
+- No independent data fetch
+
+---
+
+## 5. Scope
+
+### In Scope (v1)
+
+**Device App (watch) — 5 swipeable pages:**
+- **Main Page:** "Swell Index" with traffic light system (Go Crazy / Have Fun / Better Get Coffee)
+- **Conditions Page:** Wave height, direction, period; wind speed, direction; sunrise/sunset
+- **Weather Page:** Temperature, UV index
+- **Forecast Page:** 3–4 day outlook with wave height, period, wind, score
+- **Help Page:** Explanation of score calculation
+
+**Settings App (phone):**
+- List of predefined beaches in Israel
+- Click to save selected beach coordinates to `settingsStorage`
+
+**Side Service (phone):**
+- Fetch forecast from surf API
+- Send data to Device App via BLE
+
+**Other:**
+- **Workout Extension (watch):** Compact cached forecast view during surf workout
+- **Offline cache:** Watch stores last received forecast for disconnected viewing
+- **Traffic light logic:** Color-coded go/no-go indicator based on composite score
+
+### Out of Scope (v1)
+
+- Exact forecast API provider selection (treated as a pluggable placeholder).
+- Precise scoring algorithm weights (placeholder weighted sum; exact thresholds TBD).
+- Session recording (BPM, GPS, distance) — deferred to v2.
+- Multiple saved spots / spot switching from the watch.
+- Notifications or alarms ("waves are good right now").
+- Graph/Canvas visualization (deferred; may add in v1.1).
+
+---
+
+## 6. Functional Requirements
+
+### FR-1: Settings App – Beach Selection
+
+- Display a hardcoded list of beaches in Israel (name only).
+- On beach click: save coordinates to `settingsStorage`.
+- No API calls (Settings App cannot use `fetch()`).
+- Side Service reads this storage to determine fetch location.
+
+### FR-2: Device App – Main Page (Swell Index)
+
+- Display title: "Swell Index".
+- Display subtitle: selected beach name (from storage).
+- Implement traffic light system based on composite score (0–10):
+  - **Green (7–10):** Surfboard icon + "Go Crazy"
+  - **Yellow (4–6):** Wave icon + "Have Fun"
+  - **Red (0–3):** Coffee icon + "Better Get Coffee"
+- Read cached forecast on launch.
+- When phone is paired: request fresh data from Side Service.
+- Show staleness indicator if data is old.
+
+### FR-3: Device App – Conditions Page
+
+- Display the following parameters from the latest forecast:
+  - Wave Height (m/ft)
+  - Wave Direction (arrow + degrees)
+  - Wave Period (seconds)
+  - Wind Speed (km/h)
+  - Wind Direction (arrow + cardinal)
+  - Sunrise Time (HH:MM)
+  - Sunset Time (HH:MM)
+
+### FR-4: Device App – Weather Page
+
+- Display:
+  - Temperature (°C / °F)
+  - UV Index (numeric + descriptor: Low/Moderate/High/Very High/Extreme)
+
+### FR-5: Device App – Forecast Page
+
+- Display 3–4 day forecast.
+- Per day show:
+  - Day name (e.g., "Mon", "Tue")
+  - Wave height range (e.g., "1.2–1.8m")
+  - Period (seconds)
+  - Wind (speed + direction)
+  - Composite score (color-coded)
+- Enable horizontal scroll or swipe between days.
+
+### FR-6: Device App – Help Page
+
+- Display title: "How It Works".
+- Explain score calculation formula:
+  - Score = (Wave Height × 0.3) + (Wave Period × 0.3) + (Wave Direction × 0.2) + (Wind × 0.2)
+- Include disclaimer: "Scores are suggestions. Always check conditions yourself and surf at your own risk."
+
+### FR-7: Side Service – Fetch Forecast
+
+- Accept message from Device App ("get forecast").
+- Read user’s selected beach coordinates from `settingsStorage`.
+- Call forecast API via `fetch()`.
+- Parse response into compact payload.
+- Send payload to Device App via MessageBuilder.
+
+### FR-8: Offline Cache
+
+- Device App stores last received forecast payload in persistent storage.
+- On launch without phone connection: display cached data with "offline" indicator.
+- Workout Extension reads same cached forecast (no independent fetch).
+
+### FR-9: Workout Extension (Surf Mode)
+
+- Register in `app.json` under `data-widget` for Surf sport type (API_LEVEL 3.6+).
+- Display compact cached forecast view (wave height, period, score).
+- Read-only; no user interaction required.
 
 ---
 
@@ -131,13 +368,13 @@ Any Amazfit watch running **Zepp OS v3+** (e.g., Amazfit Balance, GTR 4, T-Rex U
 
 ---
 
-## 7. Platform and Architecture Summary
+## 8. Platform and Architecture Summary
 
 - **Type:** Zepp OS Mini Program (`appType: "app"`).
 - **Components:**
-  - Device App (watch) — Forecast and graph pages (opened from app icon), Workout Extension (data-widget, cached forecast), Canvas graph, optional sensor reads.
-  - Side Service (phone) — Only part that does HTTP; Fetch API, MessageBuilder to Device App, reads `settingsStorage`.
-  - Settings App (phone) — Configuration UI in Zepp App (surf spot, etc.); no fetch, no direct watch communication.
+  - **Device App (watch):** 5 swipeable pages (Main, Conditions, Weather, Forecast, Help) + Workout Extension.
+  - **Side Service (phone):** HTTP fetch, BLE communication to Device App, reads `settingsStorage`.
+  - **Settings App (phone):** Beach selection UI in Zepp App; writes to `settingsStorage`; no fetch, no direct watch communication.
 - **Communication:** Bluetooth via MessageBuilder (`/shared/message.js` on device, `/shared/message-side.js` on Side Service).
 - **Project scaffold:** `zeus create surf-forecast` → APP with app-side + settings components.
 
@@ -159,16 +396,20 @@ Any Amazfit watch running **Zepp OS v3+** (e.g., Amazfit Balance, GTR 4, T-Rex U
 
 | Criterion | Measurement |
 |-----------|-------------|
-| Forecast visible | User sees wave height, period, direction on watch within 3s of opening (paired). |
-| Graph renders | Canvas-drawn graph displays 24h of wave height / score data. |
-| Offline fallback | When phone is disconnected, last synced forecast is shown with staleness label. |
-| Settings work | User can set a spot in the Zepp App Settings; Side Service uses it for the next fetch. |
+| Main page renders | Traffic light indicator + beach name visible within 3s of opening (paired). |
+| Conditions page complete | All 7 parameters (wave height, direction, period, wind speed/direction, sunrise, sunset) display correctly. |
+| Weather page complete | Temperature and UV index display correctly. |
+| Forecast page complete | 3–4 day forecast displays with wave height, period, wind, and score per day. |
+| Help page complete | Score formula and disclaimer are visible and readable. |
+| Offline fallback | When phone is disconnected, cached data is shown with staleness label. |
+| Settings work | User can select a beach from the list; coordinates are saved and used for next fetch. |
 
 ---
 
 ## 10. Open Questions
 
-1. Which surf forecast API to use? (Free tier, rate limits, geographic coverage.)
-2. Should the composite "surfability" score be computed on the phone or the watch?
-3. Do we want multiple pages (swipe between forecast and graph) or a single scrollable page?
+1. Which surf forecast API to use? (Free tier, rate limits, geographic coverage for Israel beaches.)
+2. Should the composite "surfability" score be computed on the phone (Side Service) or the watch (Device App)?
+3. What are the exact score thresholds for traffic light colors? (TBD based on local Israel beach conditions.)
 4. v2 sensor features: should session recording start automatically when the user starts a workout, or be manually toggled?
+5. Which specific beaches in Israel should be included in the initial list?
