@@ -1,10 +1,10 @@
 import * as hmUI from "@zos/ui";
 import { BasePage } from "@zeppos/zml/base-page";
-import { getTrafficLightState, formatScore } from "../utils/score";
+import { getTrafficLightState, formatScore } from "./score";
 import { MAIN_PAGE_LAYOUT } from "./index.r.layout";
 
 // Mock score for Phase 2 UI testing
-const MOCK_SCORE = 10;
+const MOCK_SCORE = 8;
 const MOCK_BEACH = "Frishman Beach";
 
 let titleWidget, beachNameWidget, iconWidget, scoreCircle, scoreTextWidget, messageWidget;
@@ -58,6 +58,15 @@ Page(
       // Update icon and message
       iconWidget.setProperty(hmUI.prop.TEXT, state.icon);
       messageWidget.setProperty(hmUI.prop.TEXT, state.text);
+    },
+
+    renderNoBeachSelected() {
+      beachNameWidget.setProperty(hmUI.prop.TEXT, "No Beach Selected");
+      scoreCircle.setProperty(hmUI.prop.COLOR, 0x404040); // Dark grey
+      scoreTextWidget.setProperty(hmUI.prop.COLOR, 0xcccccc);
+      scoreTextWidget.setProperty(hmUI.prop.TEXT, "?");
+      iconWidget.setProperty(hmUI.prop.TEXT, "⚙️");
+      messageWidget.setProperty(hmUI.prop.TEXT, "Go to Settings");
     },
   })
 );

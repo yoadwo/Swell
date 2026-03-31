@@ -1,34 +1,21 @@
 // Settings App for Swell — runs inside the Zepp App settings environment
 import { ISRAEL_BEACHES } from "./beaches";
+import { saveBeach, loadBeach } from "./storage";
 
 AppSettingsPage({
   state: {
     selectedBeach: null,
-    props: {},
-  },
-
-  saveBeach(beach) {
-    try {
-      this.state.props.settingsStorage.setItem('selectedBeach', JSON.stringify(beach));
-      console.log('Beach saved to storage:', beach.name);
-    } catch (e) {
-      console.warn('Failed to save selected beach', e);
-    }
+    settingsStorage: null,
   },
 
   setState(props) {
-    this.state.props = props;
-    try {
-      const raw = props.settingsStorage.getItem('selectedBeach');
-      if (raw) {
-        this.state.selectedBeach = JSON.parse(raw);
-        console.log('Beach loaded from storage:', this.state.selectedBeach.name);
-      } else {
-        this.state.selectedBeach = null;
-      }
-    } catch (e) {
-      console.warn('Failed to read selected beach', e);
-      this.state.selectedBeach = null;
+    this.state.settingsStorage = props.settingsStorage;
+    this.state.selectedBeach = loadBeach(props.settingsStorage);
+  },
+
+  handleSelectBeach(beach) {
+    if (saveBeach(this.state.settingsStorage, beach)) {
+      this.state.selectedBeach = beach;
     }
   },
 
@@ -73,8 +60,7 @@ AppSettingsPage({
                   borderRadius: '4px',
                 },
                 onClick: () => {
-                  this.state.selectedBeach = beach;
-                  this.saveBeach(beach);
+                  this.handleSelectBeach(beach);
                 },
               }),
             ]
