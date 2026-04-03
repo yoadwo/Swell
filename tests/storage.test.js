@@ -24,64 +24,60 @@ class MockStorage {
   }
 }
 
-// Tests for saveBeach
-console.log('\n=== Save Beach Tests ===');
+test('Save Beach', async (t) => {
+  await t.test('Saves beach successfully', () => {
+    const storage = new MockStorage();
+    const beach = { name: 'Frishman', lat: 32.0949, lon: 34.7726 };
+    const result = saveBeach(storage, beach);
+    assert(result === true, 'Should return true on success');
+    assert.deepEqual(JSON.parse(storage.getItem('selectedBeach')), beach, 'Beach should be stored');
+  });
 
-test('Saves beach successfully', () => {
-  const storage = new MockStorage();
-  const beach = { name: 'Frishman', lat: 32.0949, lon: 34.7726 };
-  const result = saveBeach(storage, beach);
-  assert(result === true, 'Should return true on success');
-  assert.equal(JSON.parse(storage.getItem('selectedBeach')), beach, 'Beach should be stored');
+  await t.test('Handles null storage gracefully', () => {
+    const beach = { name: 'Frishman', lat: 32.0949, lon: 34.7726 };
+    const result = saveBeach(null, beach);
+    assert(result === false, 'Should return false when storage is null');
+  });
+
+  await t.test('Handles missing setItem gracefully', () => {
+    const storage = { /* no setItem method */ };
+    const beach = { name: 'Frishman', lat: 32.0949, lon: 34.7726 };
+    const result = saveBeach(storage, beach);
+    assert(result === false, 'Should return false when setItem is missing');
+  });
 });
 
-test('Handles null storage gracefully', () => {
-  const beach = { name: 'Frishman', lat: 32.0949, lon: 34.7726 };
-  const result = saveBeach(null, beach);
-  assert(result === false, 'Should return false when storage is null');
+test('Load Beach', async (t) => {
+  await t.test('Loads beach successfully', () => {
+    const storage = new MockStorage();
+    const beach = { name: 'Frishman', lat: 32.0949, lon: 34.7726 };
+    storage.setItem('selectedBeach', JSON.stringify(beach));
+    
+    const loaded = loadBeach(storage);
+    assert.deepEqual(loaded, beach, 'Should load stored beach');
+  });
+
+  await t.test('Returns null when no beach stored', () => {
+    const storage = new MockStorage();
+    const loaded = loadBeach(storage);
+    assert(loaded === null, 'Should return null when beach not found');
+  });
+
+  await t.test('Handles null storage gracefully', () => {
+    const loaded = loadBeach(null);
+    assert(loaded === null, 'Should return null when storage is null');
+  });
+
+  await t.test('Handles missing getItem gracefully', () => {
+    const storage = { /* no getItem method */ };
+    const loaded = loadBeach(storage);
+    assert(loaded === null, 'Should return null when getItem is missing');
+  });
+
+  await t.test('Handles corrupted JSON gracefully', () => {
+    const storage = new MockStorage();
+    storage.setItem('selectedBeach', 'not valid json {');
+    const loaded = loadBeach(storage);
+    assert(loaded === null, 'Should return null on JSON parse error');
+  });
 });
-
-test('Handles missing setItem gracefully', () => {
-  const storage = { /* no setItem method */ };
-  const beach = { name: 'Frishman', lat: 32.0949, lon: 34.7726 };
-  const result = saveBeach(storage, beach);
-  assert(result === false, 'Should return false when setItem is missing');
-});
-
-// Tests for loadBeach
-console.log('\n=== Load Beach Tests ===');
-
-test('Loads beach successfully', () => {
-  const storage = new MockStorage();
-  const beach = { name: 'Frishman', lat: 32.0949, lon: 34.7726 };
-  storage.setItem('selectedBeach', JSON.stringify(beach));
-  
-  const loaded = loadBeach(storage);
-  assert.equal(loaded, beach, 'Should load stored beach');
-});
-
-test('Returns null when no beach stored', () => {
-  const storage = new MockStorage();
-  const loaded = loadBeach(storage);
-  assert(loaded === null, 'Should return null when beach not found');
-});
-
-test('Handles null storage gracefully', () => {
-  const loaded = loadBeach(null);
-  assert(loaded === null, 'Should return null when storage is null');
-});
-
-test('Handles missing getItem gracefully', () => {
-  const storage = { /* no getItem method */ };
-  const loaded = loadBeach(storage);
-  assert(loaded === null, 'Should return null when getItem is missing');
-});
-
-test('Handles corrupted JSON gracefully', () => {
-  const storage = new MockStorage();
-  storage.setItem('selectedBeach', 'not valid json {');
-  const loaded = loadBeach(storage);
-  assert(loaded === null, 'Should return null on JSON parse error');
-});
-
-console.log('\n=== All tests completed ===');

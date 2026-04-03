@@ -4,14 +4,13 @@
  */
 
 export const MOCK_FORECAST_HIGH = {
-  beach: "Frishman",
-  score: 8.5,
   current: {
     waveHeight: 1.8,
     wavePeriod: 14,
     waveDirection: 315,
     windSpeed: 10,
     windDirection: 90,
+    waterTemp: 22,
   },
   sunrise: "06:15",
   sunset: "19:30",
@@ -23,14 +22,13 @@ export const MOCK_FORECAST_HIGH = {
 };
 
 export const MOCK_FORECAST_MEDIUM = {
-  beach: "Hilton",
-  score: 5.2,
   current: {
     waveHeight: 1.2,
     wavePeriod: 10,
     waveDirection: 270,
     windSpeed: 15,
     windDirection: 100,
+    waterTemp: 20,
   },
   sunrise: "06:15",
   sunset: "19:30",
@@ -42,14 +40,13 @@ export const MOCK_FORECAST_MEDIUM = {
 };
 
 export const MOCK_FORECAST_LOW = {
-  beach: "Bat Yam",
-  score: 2.1,
   current: {
     waveHeight: 0.8,
     wavePeriod: 8,
     waveDirection: 180,
     windSpeed: 5,
     windDirection: 45,
+    waterTemp: 18,
   },
   sunrise: "06:15",
   sunset: "19:30",

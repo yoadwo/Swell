@@ -179,15 +179,43 @@ const selectedBeach = JSON.parse(settingsStorage.getItem('selectedBeach'));
 }
 ```
 
-**3.4 Score calculation - OPEN QUESTION**
+**3.4 Score calculation - IMPLEMENTED IN SIDE SERVICE**
 
-> **Ask user:** Should the composite score (0-10) be calculated:
-> - **Option A:** On the phone (Side Service) before sending to watch?
-> - **Option B:** On the watch (Device App) after receiving raw data?
->
-> **Trade-offs:**
-> - Phone: More processing power, easier to adjust algorithm without watch update.
-> - Watch: More transparent to user, works offline once data is cached.
+> **Location:** `app-side/handlers.js` - `calculateScore()` function
+> **Algorithm:** Israel-specific (West-facing beaches)
+> **Trade-offs:** Processing on Side Service (phone) for:
+> - More processing power for complex calculations
+> - Easier to adjust algorithm without watch update
+> - Consistent score calculation across all beaches
+
+**3.4.1 Scoring Algorithm (generalized for Israel)**
+
+All Israeli beaches face west, so wind direction is consistently relevant.
+
+**Wind (Primary Key) - Critical Factor:**
+- Optimal vectors: E, SE, NE (offshore) → weight HIGH
+- Critical fail: W, SW (onshore) → returns low score or zero
+- Velocity (knots):
+  - 0–5: Great (score +3)
+  - 6–8: OK (score +2)
+  - 9+: Low (score +1)
+
+**Swell Height (Workable Range):**
+- Great: 0.9m – 1.3m (score +3)
+- OK: 0.7m – 0.9m (score +2)
+- Low: <0.7m or >1.3m (score +1)
+
+**Period (Wave Quality, seconds):**
+- Great: 10s+ (score +3)
+- Good: 8–10s (score +2)
+- Low: 7s (score +1)
+- Very low: <7s (score 0)
+
+**Execution Window (Daily):**
+- Valid: 7:00 AM – 7:00 PM
+- Outside window: returns lower score or zero
+
+**Final Score:** Aggregate weighted factors into 0–10 scale
 
 **3.5 Send to watch via BLE**
 

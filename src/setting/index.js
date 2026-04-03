@@ -5,29 +5,30 @@ import { saveBeach, loadBeach } from "./storage";
 AppSettingsPage({
   state: {
     selectedBeach: null,
-    settingsStorage: null,
   },
 
-  setState(props) {
-    this.state.settingsStorage = props.settingsStorage;
-    this.state.selectedBeach = loadBeach(props.settingsStorage);
+  setState(settingsStorage) {
+    // Load beach selection from storage
+    // Returns null if no beach selected yet
+    this.state.selectedBeach = loadBeach(settingsStorage);
   },
 
-  handleSelectBeach(beach) {
-    if (saveBeach(this.state.settingsStorage, beach)) {
-      this.state.selectedBeach = beach;
-    }
+  handleSelectBeach(settingsStorage, beach) {
+    // Event handler: storage operation first, then state
+    saveBeach(settingsStorage, beach);
+    this.state.selectedBeach = beach;
   },
 
   build(props) {
-    this.setState(props);
+    // Initialize state from storage
+    this.setState(props.settingsStorage);
 
     return View(
       { style: { padding: '12px 16px' } },
       [
         Text(
           { style: { fontSize: '18px', fontWeight: 'bold', marginBottom: '16px' } },
-          ['Select Your Beach']
+          [this.state.selectedBeach ? 'Change Beach' : 'Select Your Beach']
         ),
         ...ISRAEL_BEACHES.map((beach) => {
           const isSelected = this.state.selectedBeach && this.state.selectedBeach.name === beach.name;
@@ -60,7 +61,7 @@ AppSettingsPage({
                   borderRadius: '4px',
                 },
                 onClick: () => {
-                  this.handleSelectBeach(beach);
+                  this.handleSelectBeach(props.settingsStorage, beach);
                 },
               }),
             ]

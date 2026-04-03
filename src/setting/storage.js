@@ -40,7 +40,7 @@ export function loadBeach(storage) {
     const raw = storage.getItem(SELECTED_BEACH_KEY);
     if (raw) {
       const beach = JSON.parse(raw);
-      console.log('Beach loaded from storage:', beach.name);
+      console.log('Beach loaded from storage:', beach);
       return beach;
     }
     console.log('No beach found in storage');

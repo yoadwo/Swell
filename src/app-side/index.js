@@ -1,5 +1,5 @@
 import { BaseSideService } from "@zeppos/zml/base-side";
-import { handleGetForecastRequest } from "./handlers";
+import { handleGetForecastRequestAsync } from "./handlers.js";
 
 AppSideService(
   BaseSideService({
@@ -8,8 +8,14 @@ AppSideService(
     onRequest(req, res) {
       console.log("SideService onRequest ->", req.method);
       if (req.method === "GET_FORECAST") {
-        const payload = handleGetForecastRequest(settingsStorage);
-        res(null, payload);
+        handleGetForecastRequestAsync(settingsStorage)
+          .then(payload => {
+            res(null, payload);
+          })
+          .catch(err => {
+            console.error("Error handling GET_FORECAST:", err);
+            res(err);
+          });
       }
     },
 
