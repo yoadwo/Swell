@@ -35,12 +35,13 @@ The app provides **two entry points on the watch**: (1) the **Device App** — w
 │                    MINI PROGRAM                              │
 ├─────────────────────────────────────────────────────────────┤
 │                                                               │
-│  ┌─────────────────┐  ┌─────────────────┐                   │
-│  │  Settings App   │  │   Side Service  │                   │
-│  │  (Phone UI)     │  │   (Phone BG)    │                   │
-│  │  - Beach list   │  │   - Fetch API   │                   │
-│  │  - Save coords  │  │   - Send to watch│                  │
-│  └─────────────────┘  └─────────────────┘                   │
+│  ┌─────────────────┐  ┌─────────────────────────────────┐   │
+│  │  Settings App   │  │   Side Service                  │   │
+│  │  (Phone UI)     │  │   (Phone BG)                    │   │
+│  │  - Beach list   │  │   - Fetch API                   │   │
+│  │  - Save coords  │  │   - Calculate Score             │   │
+│  └─────────────────┘  │   - Send to watch               │   │
+│                       └─────────────────────────────────┘   │
 │                                                               │
 │  ┌─────────────────────────────────────────────────────────┐ │
 │  │              Device App (Watch)                         │ │

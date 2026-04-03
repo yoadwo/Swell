@@ -5,7 +5,7 @@
  * Usage: node --test ../tests/handlers.test.js
  */
 
-import { handleGetForecastRequestAsync, _calculateScore, _getWindScore } from '../src/app-side/handlers.js';
+import { handleGetForecastRequestAsync, createMockHttpClient, _calculateScore, _getWindScore } from '../src/app-side/handlers.js';
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
@@ -25,14 +25,17 @@ class MockStorage {
 }
 
 test('Forecast Generation', async (t) => {
+    // Create mock HTTP client for all tests in this suite
+    const mockHttpClient = createMockHttpClient('high');
+
     await t.test('Returns null when no beach selected', async () => {
         const storage = new MockStorage();
-        const payload = await handleGetForecastRequestAsync(storage);
+        const payload = await handleGetForecastRequestAsync(storage, mockHttpClient);
         assert(payload === null, 'Should return null when no beach selected');
     });
 
     await t.test('Returns null when storage is not available', async () => {
-        const payload = await handleGetForecastRequestAsync(null);
+        const payload = await handleGetForecastRequestAsync(null, mockHttpClient);
         assert(payload === null, 'Should return null when storage is null');
     });
 
@@ -41,7 +44,7 @@ test('Forecast Generation', async (t) => {
             'selectedBeach': 'invalid json {',
         });
 
-        const payload = await handleGetForecastRequestAsync(storage);
+        const payload = await handleGetForecastRequestAsync(storage, mockHttpClient);
         assert(payload === null, 'Should return null on parse error');
     });
 
@@ -51,20 +54,22 @@ test('Forecast Generation', async (t) => {
             'selectedBeach': JSON.stringify(selectedBeach),
         });
 
-        const payload = await handleGetForecastRequestAsync(storage);
+        const payload = await handleGetForecastRequestAsync(storage, mockHttpClient);
         assert(payload !== null, 'Should return payload when beach is selected');
         assert.deepEqual(payload.beach, 'Bat Yam', 'Should use beach name from storage');
     });
 });
 
 test('Forecast Payload Structure', async (t) => {
+    const mockHttpClient = createMockHttpClient('high');
+    
     await t.test('Payload includes all required fields', async () => {
         const selectedBeach = { name: 'Frishman', lat: 32.0949, lon: 34.7726 };
         const storage = new MockStorage({
             'selectedBeach': JSON.stringify(selectedBeach),
         });
 
-        const payload = await handleGetForecastRequestAsync(storage);
+        const payload = await handleGetForecastRequestAsync(storage, mockHttpClient);
         assert(payload !== null, 'Should have payload');
 
         // Beach and score

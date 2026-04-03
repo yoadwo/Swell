@@ -4,7 +4,7 @@
  * 
  * Flow:
  * 1. Load beach (name, lat, lon) from storage
- * 2. Fetch forecast data from API (or mock) using coordinates
+ * 2. Fetch forecast data using coordinates
  * 3. Calculate score from forecast conditions
  * 4. Aggregate result: { beach, score, current, ... }
  * 5. Return final payload
@@ -13,27 +13,78 @@
 import { getMockForecast } from "../utils/mock-data.js";
 
 /**
- * Fetch forecast data from weather API
- * Private method - currently uses mock data
+ * HTTP Client Interface
+ * Both real and mock implementations must satisfy this interface
+ * 
+ * @typedef {Object} HttpClient
+ * @property {Function} fetch - Async function that returns forecast data
+ */
+
+/**
+ * Production HTTP Client
+ * Wraps real fetch API for weather data
+ * 
+ * @param {string} apiUrl - Base URL for weather API
+ * @returns {HttpClient} - Object with fetch method
+ */
+export function createHttpClient(apiUrl = "https://api.open-meteo.com") {
+  return {
+    /**
+     * Fetch real weather data from API
+     * @param {number} lat - Latitude
+     * @param {number} lon - Longitude
+     * @returns {Promise<Object>} - Forecast data from API
+     */
+    async fetch(lat, lon) {
+      // TODO: Replace with real API call (Open-Meteo Marine, StormGlass, etc.)
+      // Expected shape from API:
+      // {
+      //   current: { waveHeight, wavePeriod, waveDirection, windSpeed, windDirection, waterTemp },
+      //   hourly?: [ { time, waveHeight, ... }, ... ],
+      //   weather?: { temperature, uvIndex },
+      //   sunrise?, sunset?
+      // }
+      console.log(`Fetching forecast from ${apiUrl} for ${lat}, ${lon}`);
+      
+      // Placeholder: for now return mock data
+      return getMockForecast('high');
+    }
+  };
+}
+
+/**
+ * Mock HTTP Client for Testing
+ * Returns mock forecast data without making real API calls
+ * 
+ * @param {string} mockLevel - "high", "medium", or "low" 
+ * @returns {HttpClient} - Object with fetch method that returns mock data
+ */
+export function createMockHttpClient(mockLevel = "high") {
+  return {
+    /**
+     * Return mock forecast data (no actual HTTP)
+     * @param {number} lat - Ignored (same mock for all locations)
+     * @param {number} lon - Ignored (same mock for all locations)
+     * @returns {Promise<Object>} - Mock forecast data
+     */
+    async fetch(lat, lon) {
+      console.log(`[MOCK] Returning ${mockLevel} forecast for ${lat}, ${lon}`);
+      return getMockForecast(mockLevel);
+    }
+  };
+}
+
+/**
+ * Fetch forecast data using injected HTTP client
+ * Private method
  * 
  * @param {number} lat - Latitude
  * @param {number} lon - Longitude
+ * @param {HttpClient} httpClient - HTTP client instance
  * @returns {Promise<Object>} - Raw forecast data {current, hourly, weather, ...}
- * 
- * TODO: Replace with real API call (Open-Meteo Marine, StormGlass, etc.)
- * Expected shape from API:
- * {
- *   current: { waveHeight, wavePeriod, waveDirection, windSpeed, windDirection, waterTemp },
- *   hourly?: [ { time, waveHeight, ... }, ... ],
- *   weather?: { temperature, uvIndex },
- *   sunrise?, sunset?
- * }
  */
-async function fetchForecast(lat, lon) {
-  // TODO: Call real weather API with lat/lon
-  // For now, use mock data (ignoring coordinates)
-  const forecastData = getMockForecast('high');
-  return forecastData;
+async function fetchForecast(lat, lon, httpClient) {
+  return httpClient.fetch(lat, lon);
 }
 
 /**
@@ -171,10 +222,16 @@ function getWindScore(windDirection, seaDirection = 270) {
  * Handle GET_FORECAST request - main async entry point
  * 
  * @param {Object} storage - settingsStorage object (from Zepp environment)
+ * @param {HttpClient} httpClient - HTTP client instance
  * @returns {Promise<Object|null>} - Aggregated payload {beach, score, current, hourly, ...}
  *                                   or null if no beach selected or error
  */
-export async function handleGetForecastRequestAsync(storage) {
+export async function handleGetForecastRequestAsync(storage, httpClient) {
+  // Default to real HTTP client if not injected
+  if (!httpClient) {
+    throw new Error('HTTP client is required');
+  }
+
   // Step 1: Load beach with coordinates from storage
   let beach = null;
   try {
@@ -199,7 +256,7 @@ export async function handleGetForecastRequestAsync(storage) {
   // Step 2: Fetch forecast data using coordinates
   let forecastData = null;
   try {
-    forecastData = await fetchForecast(beach.lat, beach.lon);
+    forecastData = await fetchForecast(beach.lat, beach.lon, httpClient);
     console.log('Forecast fetched for coordinates:', beach.lat, beach.lon);
   } catch (e) {
     console.warn('Failed to fetch forecast:', e);

@@ -192,6 +192,24 @@ const selectedBeach = JSON.parse(settingsStorage.getItem('selectedBeach'));
 
 All Israeli beaches face west, so wind direction is consistently relevant.
 
+**3.4.2 Dependency Injection Pattern**
+
+To prepare for real API integration, the handler uses dependency injection:
+
+```javascript
+// Production: real HTTP client
+export async function handleGetForecastRequestAsync(storage, httpClient) {
+  // httpClient injected from index.js
+  const forecastData = await fetchForecast(lat, lon, httpClient);
+  const score = calculateScore(forecastData);
+  return { beach, score, ...forecastData };
+}
+
+// Testing: mock HTTP client
+const mockHttpClient = createMockHttpClient('high');
+await handleGetForecastRequestAsync(storage, mockHttpClient);
+```
+
 **Wind (Primary Key) - Critical Factor:**
 - Optimal vectors: E, SE, NE (offshore) → weight HIGH
 - Critical fail: W, SW (onshore) → returns low score or zero
