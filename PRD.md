@@ -155,12 +155,12 @@ The Device App contains the following swipeable pages:
 | Parameter | Display Format |
 |-----------|----------------|
 | Wave Height | X.X m / X.X ft |
-| Wave Direction | Arrow + degrees (e.g., ↗ 315°) |
 | Wave Period | XX seconds |
+| Wave Direction | Arrow + degrees (e.g., ↗ 315°) |
 | Wind Speed | XX km/h |
 | Wind Direction | Arrow + cardinal (e.g., ← W) |
-| Sunrise | HH:MM |
-| Sunset | HH:MM |
+| Water Temperature | XX°C |
+| Sunrise / Sunset | HH:MM |
 
 **Behavior:**
 - Shows data from most recent forecast fetch
@@ -176,7 +176,7 @@ The Device App contains the following swipeable pages:
 
 | Parameter | Display Format |
 |-----------|----------------|
-| Temperature | XX°C / XX°F |
+| Air Temperature | XX°C / XX°F |
 | UV Index | Numeric (0–11+) + descriptor (Low/Moderate/High/Very High/Extreme) |
 
 **Behavior:**
@@ -210,21 +210,11 @@ The Device App contains the following swipeable pages:
 
 **UI Elements:**
 - Title: "How It Works"
-- Explanation text (scrollable)
-- Formula breakdown:
+- Explanation text (scrollable) describing the Swell Index calculation
+- Score formula and component factors
+- Disclaimer: "Scores are suggestions. Always check conditions yourself and surf at your own risk."
 
-**Score Calculation (0–10 scale):**
-```
-Score = (Wave Height × 0.3) + (Wave Period × 0.3) + (Wave Direction × 0.2) + (Wind × 0.2)
-
-Where:
-- Wave Height: 0–10 scale (ideal: 1.5–2.5m for intermediate)
-- Wave Period: 0–10 scale (ideal: 12–16s)
-- Wave Direction: 0–10 based on alignment with beach break
-- Wind: 0–10 (offshore = high, onshore = low)
-```
-
-- Note: "Scores are suggestions. Always check conditions yourself and surf at your own risk."
+**Note:** For detailed score calculation methodology, see **FR-2: Score Calculation (Source of Truth)**
 
 ---
 
@@ -291,6 +281,7 @@ Where:
 
 ### FR-2: Device App – Main Page (Swell Index)
 
+**Display and UI:**
 - Display title: "Swell Index".
 - Display subtitle: selected beach name (from storage).
 - Implement traffic light system based on composite score (0–10):
@@ -301,21 +292,47 @@ Where:
 - When phone is paired: request fresh data from Side Service.
 - Show staleness indicator if data is old.
 
+**Score Calculation (Source of Truth):**
+
+The Swell Index score (0–10) is calculated from three equally-weighted factors:
+
+1. **Wind Score (0–3):** Combines direction and speed
+   - Direction: Offshore (E/SE/NE) = high, Onshore (W/SW) = low, based on angular difference from optimal offshore vector
+   - Speed: Lower wind (≤5 knots) = higher score, higher wind (9+ knots) = lower score
+   - Combined using weighted average of direction and speed
+
+2. **Wave Height Score (0–3):** Based on swell size
+   - Ideal range 0.9–1.3m = score 3
+   - Smaller or slightly larger = score 2 or 1
+   - Extreme sizes = score 0
+
+3. **Wave Period Score (0–3):** Based on swell organization
+   - Longer period (10+ seconds) = score 3 (clean, organized waves)
+   - Shorter period (<7 seconds) = score 0 (choppy, disorganized)
+
+**Final Score Formula:**
+```
+Score = Average(windScore, heightScore, periodScore) × (10/3)
+```
+
+**NOT Scored (Presented for Reference Only):**
+- Wave direction, water temperature, air temperature, UV index (see FR-3, FR-4)
+
 ### FR-3: Device App – Conditions Page
 
 - Display the following parameters from the latest forecast:
   - Wave Height (m/ft)
-  - Wave Direction (arrow + degrees)
   - Wave Period (seconds)
+  - Wave Direction (arrow + degrees)
   - Wind Speed (km/h)
   - Wind Direction (arrow + cardinal)
-  - Sunrise Time (HH:MM)
-  - Sunset Time (HH:MM)
+  - Water Temperature (°C)
+  - Sunrise/Sunset Time (HH:MM)
 
 ### FR-4: Device App – Weather Page
 
 - Display:
-  - Temperature (°C / °F)
+  - Air Temperature (°C / °F)
   - UV Index (numeric + descriptor: Low/Moderate/High/Very High/Extreme)
 
 ### FR-5: Device App – Forecast Page
@@ -332,8 +349,7 @@ Where:
 ### FR-6: Device App – Help Page
 
 - Display title: "How It Works".
-- Explain score calculation formula:
-  - Score = (Wave Height × 0.3) + (Wave Period × 0.3) + (Wave Direction × 0.2) + (Wind × 0.2)
+- Explain the Swell Index score calculation (see FR-2 for detailed formula and methodology).
 - Include disclaimer: "Scores are suggestions. Always check conditions yourself and surf at your own risk."
 
 ### FR-7: Side Service – Fetch Forecast

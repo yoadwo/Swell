@@ -182,58 +182,10 @@ const selectedBeach = JSON.parse(settingsStorage.getItem('selectedBeach'));
 **3.4 Score calculation - IMPLEMENTED IN SIDE SERVICE**
 
 > **Location:** `app-side/handlers.js` - `calculateScore()` function
-> **Algorithm:** Israel-specific (West-facing beaches)
-> **Trade-offs:** Processing on Side Service (phone) for:
-> - More processing power for complex calculations
-> - Easier to adjust algorithm without watch update
-> - Consistent score calculation across all beaches
+> **Design:** Computes on Side Service (phone) for processing power and easy adjustment without watch updates
+> **Algorithm:** Combines wind direction/speed, wave height, and wave period into a 0-10 score
+> **Details:** See **PRD § 4.2 § Page 5: Help Page** (FR-6) for exact scoring formula and thresholds
 
-**3.4.1 Scoring Algorithm (generalized for Israel)**
-
-All Israeli beaches face west, so wind direction is consistently relevant.
-
-**3.4.2 Dependency Injection Pattern**
-
-To prepare for real API integration, the handler uses dependency injection:
-
-```javascript
-// Production: real HTTP client
-export async function handleGetForecastRequestAsync(storage, httpClient) {
-  // httpClient injected from index.js
-  const forecastData = await fetchForecast(lat, lon, httpClient);
-  const score = calculateScore(forecastData);
-  return { beach, score, ...forecastData };
-}
-
-// Testing: mock HTTP client
-const mockHttpClient = createMockHttpClient('high');
-await handleGetForecastRequestAsync(storage, mockHttpClient);
-```
-
-**Wind (Primary Key) - Critical Factor:**
-- Optimal vectors: E, SE, NE (offshore) → weight HIGH
-- Critical fail: W, SW (onshore) → returns low score or zero
-- Velocity (knots):
-  - 0–5: Great (score +3)
-  - 6–8: OK (score +2)
-  - 9+: Low (score +1)
-
-**Swell Height (Workable Range):**
-- Great: 0.9m – 1.3m (score +3)
-- OK: 0.7m – 0.9m (score +2)
-- Low: <0.7m or >1.3m (score +1)
-
-**Period (Wave Quality, seconds):**
-- Great: 10s+ (score +3)
-- Good: 8–10s (score +2)
-- Low: 7s (score +1)
-- Very low: <7s (score 0)
-
-**Execution Window (Daily):**
-- Valid: 7:00 AM – 7:00 PM
-- Outside window: returns lower score or zero
-
-**Final Score:** Aggregate weighted factors into 0–10 scale
 
 **3.5 Send to watch via BLE**
 
@@ -273,15 +225,7 @@ res(null, payload);
 
 **5.2 Display parameters**
 
-| Parameter | Source |
-|-----------|--------|
-| Wave Height | `current.waveHeight` |
-| Wave Direction | `current.waveDirection` |
-| Wave Period | `current.wavePeriod` |
-| Wind Speed | `current.windSpeed` |
-| Wind Direction | `current.windDirection` |
-| Sunrise | `sunrise` |
-| Sunset | `sunset` |
+See **PRD § 4.2 § Page 2: Conditions Page** (FR-3) for full parameter list and which are scored vs reference-only.
 
 ---
 
@@ -295,10 +239,7 @@ res(null, payload);
 
 **6.2 Display parameters**
 
-| Parameter | Source |
-|-----------|--------|
-| Temperature | `weather.temperature` |
-| UV Index | `weather.uvIndex` |
+See **PRD § 4.2 § Page 3: Weather Page** (FR-4).
 
 ---
 

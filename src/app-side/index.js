@@ -1,5 +1,6 @@
 import { BaseSideService } from "@zeppos/zml/base-side";
-import { handleGetForecastRequestAsync, createHttpClient } from "./handlers.js";
+import { handleGetForecastRequestAsync } from "./handlers.js";
+import { createHttpClient } from "../utils/http.js";
 
 const httpClient = createHttpClient();
 

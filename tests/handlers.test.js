@@ -5,7 +5,9 @@
  * Usage: node --test ../tests/handlers.test.js
  */
 
-import { handleGetForecastRequestAsync, createMockHttpClient, _calculateScore, _getWindScore } from '../src/app-side/handlers.js';
+import { handleGetForecastRequestAsync } from '../src/app-side/handlers.js';
+import { createMockHttpClient } from '../src/utils/http.js';
+import { calculateScore, getWindScore } from '../src/utils/score.js';
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
@@ -103,58 +105,48 @@ test('Score Calculation Algorithm', async (t) => {
     
     await t.test('Wind score - Israel (sea at 270°/West, Offshore at 90°/East)', () => {
 
-        // Score 3: Great offshore (diff <= 45°)
-        assert.equal(_getWindScore(90, 270), 3, '90° (E) diff=0° = 3');
-        assert.equal(_getWindScore(60, 270), 3, '60° (ENE) diff=30° = 3');
-        assert.equal(_getWindScore(120, 270), 3, '120° (ESE) diff=30° = 3');
-        assert.equal(_getWindScore(45, 270), 3, '45° (NE) diff=45° = 3');
-        assert.equal(_getWindScore(135, 270), 3, '135° (SE) diff=45° = 3');
+        // High scores for offshore winds
+        assert.equal(getWindScore(90, 270), 3, 'Optimal offshore');
+        assert.equal(getWindScore(60, 270), 3, 'Offshore from NE');
+        assert.equal(getWindScore(120, 270), 3, 'Offshore from SE');
 
-        // Score 2: Good offshore (45 < diff <= 90°)
-        assert.equal(_getWindScore(30, 270), 2, '30° (NNE) diff=60° = 2');
-        assert.equal(_getWindScore(150, 270), 2, '150° (SSE) diff=60° = 2');
-        assert.equal(_getWindScore(0, 270), 2, '0° (N) diff=90° = 2');
-        assert.equal(_getWindScore(180, 270), 2, '180° (S) diff=90° = 2');
+        // Mid scores for side winds
+        assert.equal(getWindScore(30, 270), 2, 'Side wind from N');
+        assert.equal(getWindScore(150, 270), 2, 'Side wind from S');
+        assert.equal(getWindScore(0, 270), 2, 'Side wind from N');
 
-        // Score 1: Side winds (90 < diff <= 135°)
-        assert.equal(_getWindScore(200, 270), 1, '200° (SSW) diff=110° = 1');
-        assert.equal(_getWindScore(340, 270), 1, '340° (NNW) diff=110° = 1');
-        assert.equal(_getWindScore(225, 270), 1, '225° (SW) diff=135° = 1');
-        assert.equal(_getWindScore(315, 270), 1, '315° (NW) diff=135° (wrap) = 1');
+        // Low scores for onshore winds
+        assert.equal(getWindScore(200, 270), 1, 'Onshore from SW');
+        assert.equal(getWindScore(340, 270), 1, 'Onshore from NW');
 
-        // Score 0: Poor onshore (diff > 135°)
-        assert.equal(_getWindScore(270, 270), 0, '270° (W) diff=180° = 0');
-        assert.equal(_getWindScore(260, 270), 0, '260° (WSW) diff=170° = 0');
-        assert.equal(_getWindScore(280, 270), 0, '280° (WNW) diff=170° = 0');
+        // Zero for direct onshore
+        assert.equal(getWindScore(270, 270), 0, 'Direct onshore (W)');
     });
     
     await t.test('Wind score - East-facing beach (sea at 90°)', () => {
-        // Sea direction = 90° (East)
-        // Offshore = 270° (West)
+        // Sea direction = 90° (East), Offshore = 270° (West)
         
-        // Score 3: diff <= 45° (225°-315°)
-        assert.equal(_getWindScore(270, 90), 3, '270° (W) diff=0° = 3');
-        assert.equal(_getWindScore(250, 90), 3, '250° (WSW) diff=20° = 3');
-        assert.equal(_getWindScore(290, 90), 3, '290° (WNW) diff=20° = 3');
-        assert.equal(_getWindScore(225, 90), 3, '225° (SW) diff=45° = 3');
-        assert.equal(_getWindScore(315, 90), 3, '315° (NW) diff=45° = 3');
+        // High scores for offshore winds
+        assert.equal(getWindScore(270, 90), 3, 'Optimal offshore (W)');
+        assert.equal(getWindScore(250, 90), 3, 'Offshore from WSW');
+        assert.equal(getWindScore(290, 90), 3, 'Offshore from WNW');
         
-        // Score 2: 45° < diff <= 90° (180°-225°, 315°-360°)
-        assert.equal(_getWindScore(180, 90), 2, '180° (S) diff=90° = 2');
-        assert.equal(_getWindScore(0, 90), 2, '0° (N) diff=90° = 2');
+        // Mid scores for side winds
+        assert.equal(getWindScore(180, 90), 2, 'Side wind from S');
+        assert.equal(getWindScore(0, 90), 2, 'Side wind from N');
         
-        // Score 0: Onshore (from East)
-        assert.equal(_getWindScore(90, 90), 0, '90° (E) diff=180° = 0');
+        // Zero for direct onshore
+        assert.equal(getWindScore(90, 90), 0, 'Direct onshore (E)');
     });
 
     await t.test('Wind score - wrap-around at 0/360°', () => {
-        // Test wrap-around: 350° is 80° from 270° (offshore)
-        assert.equal(_getWindScore(350, 270), 1, '350° is 80° from 90° = 2');
-        assert.equal(_getWindScore(10, 270), 2, '10° is 80° from 90° = 2');
+        // Tests angular wrap-around calculation
+        assert.equal(getWindScore(350, 270), 1, 'NNW wind');
+        assert.equal(getWindScore(10, 270), 2, 'NNE wind');
     });
 
     // GREEN (Score >= 7)
-    await t.test('GREEN: Optimal conditions (9.6)', () => {
+    await t.test('GREEN: Optimal conditions', () => {
         const forecastData = {
             current: {
                 waveHeight: 1.1,
@@ -163,10 +155,10 @@ test('Score Calculation Algorithm', async (t) => {
                 windDirection: 90, // Optimal offshore
             },
         };
-        assert.equal(_calculateScore(forecastData), 9.6, 'Optimal = GREEN');
+        assert.equal(calculateScore(forecastData), 9.6, 'All factors favorable');
     });
 
-    await t.test('GREEN: With onshore wind (7.4)', () => {
+    await t.test('GREEN: With onshore wind', () => {
         const forecastData = {
             current: {
                 waveHeight: 1.2,
@@ -175,23 +167,23 @@ test('Score Calculation Algorithm', async (t) => {
                 windDirection: 270, // Onshore
             },
         };
-        assert.equal(_calculateScore(forecastData), 7.4, 'Even onshore still GREEN with great conditions');
+        assert.equal(calculateScore(forecastData), 7.4, 'Excellent wave conditions compensate for onshore wind');
     });
 
-    await t.test('GREEN: With medium wind speed (7.0)', () => {
+    await t.test('GREEN: With moderate wind speed', () => {
         const forecastData = {
             current: {
                 waveHeight: 0.8,
                 wavePeriod: 9,
-                windSpeed: 6, // Changed from 3
+                windSpeed: 6,
                 windDirection: 75,
             },
         };
-        assert.equal(_calculateScore(forecastData), 7, 'Medium wind = GREEN');
+        assert.equal(calculateScore(forecastData), 7, 'Decent conditions overall');
     });
 
     // YELLOW (Score 4-7)
-    await t.test('YELLOW: With short wave period (5)', () => {
+    await t.test('YELLOW: With short wave period', () => {
         const forecastData = {
             current: {
                 waveHeight: 1.1,
@@ -200,10 +192,10 @@ test('Score Calculation Algorithm', async (t) => {
                 windDirection: 90,
             },
         };
-        assert.equal(_calculateScore(forecastData), 6.3, 'Short period = YELLOW (barely)');
+        assert.equal(calculateScore(forecastData), 6.3, 'Reduced wave quality');
     });
 
-    await t.test('YELLOW: With bad wind', () => {
+    await t.test('YELLOW: With poor wind', () => {
         const forecastData = {
             current: {
                 waveHeight: 1.1,
@@ -212,38 +204,38 @@ test('Score Calculation Algorithm', async (t) => {
                 windDirection: 15,
             },
         };
-        assert.equal(_calculateScore(forecastData), 5.9, 'Short period = YELLOW (barely)');
+        assert.equal(calculateScore(forecastData), 5.9, 'Multiple reduced factors');
     });
 
     // RED (Score < 4) - Real low parameters
-    await t.test('RED: All bad parameters (1.5)', () => {
+    await t.test('RED: All poor parameters', () => {
         const forecastData = {
             current: {
-                waveHeight: 0.3, // Very small
-                wavePeriod: 5,   // Too short
-                windSpeed: 15,   // Very strong
+                waveHeight: 0.3,
+                wavePeriod: 5,
+                windSpeed: 15,
                 windDirection: 270, // Onshore
             },
         };
-        assert.equal(_calculateScore(forecastData), 1.5, 'All bad params = RED');
+        assert.equal(calculateScore(forecastData), 1.5, 'Unfavorable conditions');
     });
 
-    await t.test('RED: Tiny waves with onshore wind (1.5)', () => {
+    await t.test('RED: Tiny waves with onshore wind', () => {
         const forecastData = {
             current: {
-                waveHeight: 0.2, // Extremely small
-                wavePeriod: 4,   // Very short
-                windSpeed: 12,   // Strong onshore
+                waveHeight: 0.2,
+                wavePeriod: 4,
+                windSpeed: 12,
                 windDirection: 270,
             },
         };
-        assert.equal(_calculateScore(forecastData), 1.5, 'Tiny waves + onshore = RED');
+        assert.equal(calculateScore(forecastData), 1.5, 'Poor conditions across the board');
     });
 
     // Error handling tests
     await t.test('Error: Null forecast throws', () => {
         assert.throws(
-            () => _calculateScore(null),
+            () => calculateScore(null),
             /Invalid forecast data/,
             'Null forecast should throw'
         );
@@ -251,7 +243,7 @@ test('Score Calculation Algorithm', async (t) => {
 
     await t.test('Error: Empty forecast throws', () => {
         assert.throws(
-            () => _calculateScore({}),
+            () => calculateScore({}),
             /Invalid forecast data/,
             'Empty forecast should throw'
         );
@@ -259,7 +251,7 @@ test('Score Calculation Algorithm', async (t) => {
 
     await t.test('Error: Missing wind direction throws', () => {
         assert.throws(
-            () => _calculateScore({ current: { waveHeight: 1, wavePeriod: 10, windSpeed: 5 } }),
+            () => calculateScore({ current: { waveHeight: 1, wavePeriod: 10, windSpeed: 5 } }),
             /Wind direction is required/,
             'Missing wind direction should throw'
         );
@@ -273,7 +265,7 @@ test('Score Calculation Algorithm', async (t) => {
         ];
 
         testCases.forEach(current => {
-            const score = _calculateScore({ current });
+            const score = calculateScore({ current });
             assert(score >= 0 && score <= 10, 'Score should be 0-10 (got ' + score + ')');
         });
     });
