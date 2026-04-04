@@ -205,7 +205,50 @@ sequenceDiagram
 
 ---
 
-## 6. Forecast API (Placeholder)
+## 6. Forecast Data Architecture & Wind Speed Decision
+
+### Swell-Based Scoring vs. Wind Speed
+
+The Swell Index uses **swell-based measurements** for its professional scoring algorithm, not raw wind speed. This is a deliberate design choice:
+
+**Why swell-based (wind wave height) is better for scoring:**
+- Wind wave height (chop) is the **direct, observable impact** of wind on water surface conditions. It's what surfers actually see and feel.
+- Different wind speeds can produce similar chop effects depending on fetch, duration, and water temperature. Chop is the actionable metric.
+- Surfers care about rideability; wind wave height directly affects rideability. Wind speed (15 knots vs. 18 knots) is an indirect proxy.
+
+**However, wind speed is still measured and stored:**
+- Historical baseline: The app's original design used wind speed + direction, so the surfer (the product owner) has established benchmarks with wind speed data.
+- Reference/display: Wind speed is stored in the payload (`wind.speed`) for display on the Conditions Page and other screens for reference and familiarity.
+- **Score does NOT use wind speed:** Only wind wave height (chop) and direction factor into the Swell Index calculation.
+
+**Data payload architecture:**
+```json
+{
+  "current": {
+    "swell": { "height": 1.2, "period": 14, "direction": 315 },
+    "wind": {
+      "height": 0.3,
+      "direction": 90,
+      "speed": 12
+    }
+  }
+}
+```
+
+| Field | Source | Used in Score? | Purpose |
+|-------|--------|:---:|---------|
+| `swell.height` | Marine API | ✓ | Swell Height Score factor |
+| `swell.period` | Marine API | ✓ | Swell Period Score factor |
+| `swell.direction` | Marine API | ✗ | Reference (not scored; directional information provided separately) |
+| `wind.direction` | Marine API | ✓ | Wind Impact Score factor (offshore/onshore) |
+| `wind.height` | Marine API | ✓ | Wind Impact Score factor (chop severity) |
+| `wind.speed` | Weather API | ✗ | Display/benchmarking only (Conditions Page reference) |
+
+**Summary:** Professional algorithm uses swell + wind chop for scoring; familiar wind speed metric is available for reference.
+
+---
+
+## 7. Forecast API (Placeholder)
 
 The specific API is TBD. Candidates:
 
@@ -243,7 +286,7 @@ The `score` field is a placeholder composite (0-10) computed by the Side Service
 
 ---
 
-## 7. Canvas Graph Design Notes
+## 8. Canvas Graph Design Notes
 
 The watch Canvas widget supports:
 

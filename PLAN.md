@@ -160,11 +160,17 @@ const selectedBeach = JSON.parse(settingsStorage.getItem('selectedBeach'));
   "beach": "Frishman",
   "score": 8,
   "current": {
-    "waveHeight": 1.5,
-    "wavePeriod": 12,
-    "waveDirection": 315,
-    "windSpeed": 10,
-    "windDirection": 90
+    "swell": {
+      "height": 1.2,
+      "period": 12,
+      "direction": 315
+    },
+    "wind": {
+      "height": 0.3,
+      "direction": 90,
+      "speed": 12
+    },
+    "waterTemp": 22
   },
   "sunrise": "06:15",
   "sunset": "19:30",

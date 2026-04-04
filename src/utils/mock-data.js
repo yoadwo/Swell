@@ -5,11 +5,16 @@
 
 export const MOCK_FORECAST_HIGH = {
   current: {
-    waveHeight: 1.8,
-    wavePeriod: 14,
-    waveDirection: 315,
-    windSpeed: 10,
-    windDirection: 90,
+    swell: {
+      height: 1.2,
+      period: 14,
+      direction: 315,
+    },
+    wind: {
+      height: 0.3,
+      direction: 90,
+      speed: 12
+    },
     waterTemp: 22,
   },
   sunrise: "06:15",
@@ -23,11 +28,16 @@ export const MOCK_FORECAST_HIGH = {
 
 export const MOCK_FORECAST_MEDIUM = {
   current: {
-    waveHeight: 1.2,
-    wavePeriod: 10,
-    waveDirection: 270,
-    windSpeed: 15,
-    windDirection: 100,
+    swell: {
+      height: 0.9,
+      period: 10,
+      direction: 270,
+    },
+    wind: {
+      height: 0.6,
+      direction: 100,
+      speed: 18
+    },
     waterTemp: 20,
   },
   sunrise: "06:15",
@@ -41,11 +51,15 @@ export const MOCK_FORECAST_MEDIUM = {
 
 export const MOCK_FORECAST_LOW = {
   current: {
-    waveHeight: 0.8,
-    wavePeriod: 8,
-    waveDirection: 180,
-    windSpeed: 5,
-    windDirection: 45,
+    swell: {
+      height: 0.6,
+      period: 8,
+      direction: 180,
+    },
+    wind: {
+      height: 0.8,
+      direction: 45
+    },
     waterTemp: 18,
   },
   sunrise: "06:15",

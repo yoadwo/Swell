@@ -2,8 +2,18 @@
  * Swell Index Score Calculation and Display
  * 
  * Score Calculation:
- * Combines wind (direction + speed), wave height, and wave period into a 0-10 composite score.
+ * Combines swell height and period with wind direction and chop into a 0-10 composite score.
  * See PRD § 6 FR-6 for detailed scoring algorithm and thresholds.
+ * 
+ * Data Architecture:
+ * The forecast payload includes both SCORING DATA and REFERENCE DATA:
+ * - SCORING DATA (used in algorithm): swell height, swell period, wind direction, wind wave height
+ * - REFERENCE DATA (stored for display on other pages): wind speed
+ * 
+ * Wind speed is measured (km/h) from the Weather API but is NOT used in the Swell Index calculation.
+ * Instead, the Swell Index uses wind wave height (chop) as the professional measure of wind impact.
+ * Wind speed is available for reference/benchmarking on the Conditions Page and other displays,
+ * but the scoring algorithm prioritizes the more actionable metric (chop) over raw wind speed.
  * 
  * Traffic Light Display:
  * Score ranges (0-10):
@@ -14,10 +24,14 @@
 
 /**
  * Calculate Swell Index score from forecast conditions
- * Combines wind (direction + speed), wave height, and wave period into a 0-10 composite score.
+ * Combines swell height and period with wind direction and chop into a 0-10 composite score.
  * See PRD § 6 FR-6 for detailed scoring algorithm and thresholds.
  * 
- * @param {Object} forecastData - Raw forecast {current: {waveHeight, wavePeriod, windSpeed, windDirection}}
+ * NOTE: Wind speed is available in forecastData.current.wind.speed but is NOT used in scoring.
+ * Instead, wind wave height (chop) is used as the professional wind impact measure.
+ * Wind speed is stored for reference/display on other pages and benchmarking purposes.
+ * 
+ * @param {Object} forecastData - Raw forecast {current: {swell: {height, period, direction}, wind: {height, direction, speed}}}
  * @returns {number} - Score 0-10
  */
 export function calculateScore(forecastData) {
@@ -25,55 +39,59 @@ export function calculateScore(forecastData) {
     throw new Error('Invalid forecast data');
   }
 
-  const { waveHeight, wavePeriod, windSpeed, windDirection } = forecastData.current;
+  const { swell, wind } = forecastData.current;
+  if (!swell || !wind) {
+    throw new Error('Invalid forecast data: missing swell or wind');
+  }
 
-  // Step 1: Calculate wind favorability score (0-3)
+  const { height: swellHeight, period: swellPeriod, direction: swellDirection } = swell;
+  const { height: windWaveHeight, direction: windDirection } = wind;
+
+  // Step 1: Calculate wind direction favorability score (0-3)
   // Uses sea direction to determine offshore/onshore
   // For Israel: all beaches face west, so hardcoded 270 ('west')
-  const windFavorabilityScore = getWindScore(windDirection, 270);
-  
-  // Step 2: Calculate component scores (each 0-3, then normalize to 0-10)
-  let heightScore = 0;
-  let periodScore = 0;
+  const windDirectionScore = getWindScore(windDirection, 270);
 
-  // Wind velocity score (knots converted from m/s: 1 m/s ≈ 1.94 knots)
-  const windKnots = windSpeed * 1.94;
-  let windVelocityScore = 0;
-  if (windKnots <= 5) {
-    windVelocityScore = 3; // Great
-  } else if (windKnots <= 8) {
-    windVelocityScore = 2; // OK
+  // Wind chop reduction score (based on wind wave height in meters)
+  let windChopScore = 0;
+  if (windWaveHeight <= 0.5) {
+    windChopScore = 3; // Great (minimal chop)
+  } else if (windWaveHeight <= 0.8) {
+    windChopScore = 2; // OK (moderate chop)
   } else {
-    windVelocityScore = 1; // Low (9+ knots)
+    windChopScore = 1; // Low (heavy chop)
   }
+  // Combine wind direction favorability with chop effect
+  // Direction (offshore/onshore) is critical, chop is secondary
+  const windImpactScore = (windDirectionScore * 2 + windChopScore) / 3;
 
-  // Combine wind direction favorability with velocity
-  // Direction (offshore/onshore) is critical, velocity is secondary
-  const windScore = (windFavorabilityScore * 2 + windVelocityScore) / 3;
+  // Step 2: Calculate component scores (each 0-3, then normalize to 0-10)
+  let swellHeightScore = 0;
+  let swellPeriodScore = 0;
 
   // Swell height (meters)
-  if (waveHeight >= 0.9 && waveHeight <= 1.3) {
-    heightScore = 3; // Great (90cm-130cm)
-  } else if (waveHeight >= 0.7 && waveHeight < 0.9) {
-    heightScore = 2; // OK (70cm-90cm)
-  } else if (waveHeight < 0.7 || waveHeight > 1.3) {
-    heightScore = 1; // Low (too small or too large)
+  if (swellHeight >= 0.9 && swellHeight <= 1.3) {
+    swellHeightScore = 3; // Great (90cm-130cm)
+  } else if (swellHeight >= 0.7 && swellHeight < 0.9) {
+    swellHeightScore = 2; // OK (70cm-90cm)
+  } else if (swellHeight < 0.7 || swellHeight > 1.3) {
+    swellHeightScore = 1; // Low (too small or too large)
   }
 
-  // Wave period (seconds)
-  if (wavePeriod >= 10) {
-    periodScore = 3; // Great (10s+)
-  } else if (wavePeriod >= 8) {
-    periodScore = 2; // Good (8-10s)
-  } else if (wavePeriod >= 7) {
-    periodScore = 1; // Low (7s)
+  // Swell period (seconds)
+  if (swellPeriod >= 10) {
+    swellPeriodScore = 3; // Great (10s+)
+  } else if (swellPeriod >= 8) {
+    swellPeriodScore = 2; // Good (8-10s)
+  } else if (swellPeriod >= 7) {
+    swellPeriodScore = 1; // Low (7s)
   } else {
-    periodScore = 0; // Very low (<7s)
+    swellPeriodScore = 0; // Very low (<7s)
   }
 
   // Aggregate: Average the three factors (each 0-3) and scale to 0-10
   // See PRD § 6 FR-6 for scoring formula
-  const avgScore = (windScore + heightScore + periodScore) / 3;
+  const avgScore = (windImpactScore + swellHeightScore + swellPeriodScore) / 3;
   const finalScore = Math.round(avgScore * (10 / 3) * 10) / 10;
 
   return Math.max(0, Math.min(10, finalScore));

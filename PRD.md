@@ -294,28 +294,31 @@ The Device App contains the following swipeable pages:
 
 **Score Calculation (Source of Truth):**
 
-The Swell Index score (0–10) is calculated from three equally-weighted factors:
+The Swell Index score (0–10) is calculated from three equally-weighted factors, using swell-based measurements. Wind speed is measured and stored in the payload but is **NOT** used in the scoring algorithm. Instead, wind wave height (chop) is used as the professional measure of wind impact.
 
-1. **Wind Score (0–3):** Combines direction and speed
-   - Direction: Offshore (E/SE/NE) = high, Onshore (W/SW) = low, based on angular difference from optimal offshore vector
-   - Speed: Lower wind (≤5 knots) = higher score, higher wind (9+ knots) = lower score
-   - Combined using weighted average of direction and speed
+**Scoring Data (Used in Algorithm):**
 
-2. **Wave Height Score (0–3):** Based on swell size
+1. **Swell Height Score (0–3):** Based on rideable swell size
    - Ideal range 0.9–1.3m = score 3
    - Smaller or slightly larger = score 2 or 1
    - Extreme sizes = score 0
 
-3. **Wave Period Score (0–3):** Based on swell organization
+2. **Swell Period Score (0–3):** Based on swell organization
    - Longer period (10+ seconds) = score 3 (clean, organized waves)
    - Shorter period (<7 seconds) = score 0 (choppy, disorganized)
 
+3. **Wind Impact Score (0–3):** Combines wind direction and wind wave height (chop)
+   - Direction: Offshore (E/SE/NE) = high, Onshore (W/SW) = low, based on angular difference from optimal offshore vector
+   - Wind chop: Lower wind waves (≤0.5m) = higher score, higher wind waves (>1m) = lower score
+   - Combined using weighted average of direction and chop
+
 **Final Score Formula:**
 ```
-Score = Average(windScore, heightScore, periodScore) × (10/3)
+Score = Average(swellHeightScore, swellPeriodScore, windImpactScore) × (10/3)
 ```
 
-**NOT Scored (Presented for Reference Only):**
+**Reference Data (Stored for Display, NOT Scored):**
+- Wind speed (km/h) — measured from Weather API for benchmarking and reference display
 - Wave direction, water temperature, air temperature, UV index (see FR-3, FR-4)
 
 ### FR-3: Device App – Conditions Page

@@ -86,11 +86,13 @@ test('Forecast Payload Structure', async (t) => {
         // Current conditions
         const current = payload.current;
         assert(current !== undefined, 'Should include current conditions');
-        assert(current.waveHeight !== undefined, 'Should have waveHeight');
-        assert(current.wavePeriod !== undefined, 'Should have wavePeriod');
-        assert(current.waveDirection !== undefined, 'Should have waveDirection');
-        assert(current.windSpeed !== undefined, 'Should have windSpeed');
-        assert(current.windDirection !== undefined, 'Should have windDirection');
+        assert(current.swell !== undefined, 'Should have swell');
+        assert(current.swell.height !== undefined, 'Should have swell height');
+        assert(current.swell.period !== undefined, 'Should have swell period');
+        assert(current.swell.direction !== undefined, 'Should have swell direction');
+        assert(current.wind !== undefined, 'Should have wind');
+        assert(current.wind.height !== undefined, 'Should have wind wave height');
+        assert(current.wind.direction !== undefined, 'Should have wind direction');
         assert(current.waterTemp !== undefined, 'Should have waterTemp');
     });
 });
@@ -149,59 +151,84 @@ test('Score Calculation Algorithm', async (t) => {
     await t.test('GREEN: Optimal conditions', () => {
         const forecastData = {
             current: {
-                waveHeight: 1.1,
-                wavePeriod: 10,
-                windSpeed: 3,
-                windDirection: 90, // Optimal offshore
+                swell: {
+                    height: 1.1,
+                    period: 10,
+                    direction: 315,
+                },
+                wind: {
+                    height: 0.3,
+                    direction: 90,
+                },
             },
         };
-        assert.equal(calculateScore(forecastData), 9.6, 'All factors favorable');
+        assert.equal(calculateScore(forecastData), 10, 'All factors favorable');
     });
 
     await t.test('GREEN: With onshore wind', () => {
         const forecastData = {
             current: {
-                waveHeight: 1.2,
-                wavePeriod: 12,
-                windSpeed: 3,
-                windDirection: 270, // Onshore
+                swell: {
+                    height: 1.2,
+                    period: 12,
+                    direction: 270,
+                },
+                wind: {
+                    height: 0.3,
+                    direction: 270,
+                },
             },
         };
-        assert.equal(calculateScore(forecastData), 7.4, 'Excellent wave conditions compensate for onshore wind');
+        assert.equal(calculateScore(forecastData), 7.8, 'Excellent swell conditions compensate for onshore wind');
     });
 
-    await t.test('GREEN: With moderate wind speed', () => {
+    await t.test('GREEN: With moderate wind chop', () => {
         const forecastData = {
             current: {
-                waveHeight: 0.8,
-                wavePeriod: 9,
-                windSpeed: 6,
-                windDirection: 75,
+                swell: {
+                    height: 0.8,
+                    period: 9,
+                    direction: 315,
+                },
+                wind: {
+                    height: 0.6,
+                    direction: 75,
+                },
             },
         };
-        assert.equal(calculateScore(forecastData), 7, 'Decent conditions overall');
+        assert.equal(calculateScore(forecastData), 7.4, 'Decent conditions overall');
     });
 
     // YELLOW (Score 4-7)
-    await t.test('YELLOW: With short wave period', () => {
+    await t.test('YELLOW: With short swell period', () => {
         const forecastData = {
             current: {
-                waveHeight: 1.1,
-                wavePeriod: 5,
-                windSpeed: 3,
-                windDirection: 90,
+                swell: {
+                    height: 1.1,
+                    period: 5,
+                    direction: 315,
+                },
+                wind: {
+                    height: 0.3,
+                    direction: 90,
+                },
             },
         };
-        assert.equal(calculateScore(forecastData), 6.3, 'Reduced wave quality');
+        assert.equal(calculateScore(forecastData), 6.7, 'Reduced swell quality');
     });
 
-    await t.test('YELLOW: With poor wind', () => {
+    await t.test('YELLOW: With poor wind direction', () => {
         const forecastData = {
             current: {
-                waveHeight: 1.1,
-                wavePeriod: 5,
-                windSpeed: 1,
-                windDirection: 15,
+                swell: {
+                    height: 1.1,
+                    period: 5,
+                    direction: 315,
+                },
+                wind: {
+                    height: 0.2,
+                    direction: 15,
+                },
             },
         };
         assert.equal(calculateScore(forecastData), 5.9, 'Multiple reduced factors');
@@ -211,22 +238,32 @@ test('Score Calculation Algorithm', async (t) => {
     await t.test('RED: All poor parameters', () => {
         const forecastData = {
             current: {
-                waveHeight: 0.3,
-                wavePeriod: 5,
-                windSpeed: 15,
-                windDirection: 270, // Onshore
+                swell: {
+                    height: 0.3,
+                    period: 5,
+                    direction: 180,
+                },
+                wind: {
+                    height: 1.2,
+                    direction: 270,
+                },
             },
         };
         assert.equal(calculateScore(forecastData), 1.5, 'Unfavorable conditions');
     });
 
-    await t.test('RED: Tiny waves with onshore wind', () => {
+    await t.test('RED: Tiny swell with heavy wind chop', () => {
         const forecastData = {
             current: {
-                waveHeight: 0.2,
-                wavePeriod: 4,
-                windSpeed: 12,
-                windDirection: 270,
+                swell: {
+                    height: 0.2,
+                    period: 4,
+                    direction: 180,
+                },
+                wind: {
+                    height: 1.0,
+                    direction: 270,
+                },
             },
         };
         assert.equal(calculateScore(forecastData), 1.5, 'Poor conditions across the board');
@@ -249,19 +286,19 @@ test('Score Calculation Algorithm', async (t) => {
         );
     });
 
-    await t.test('Error: Missing wind direction throws', () => {
+    await t.test('Error: Missing swell or wind throws', () => {
         assert.throws(
-            () => calculateScore({ current: { waveHeight: 1, wavePeriod: 10, windSpeed: 5 } }),
-            /Wind direction is required/,
-            'Missing wind direction should throw'
+            () => calculateScore({ current: { swell: { height: 1, period: 10, direction: 315 } } }),
+            /Invalid forecast data: missing swell or wind/,
+            'Missing wind should throw'
         );
     });
 
     await t.test('Score is always between 0 and 10', () => {
         const testCases = [
-            { waveHeight: 0.1, wavePeriod: 1, windSpeed: 50, windDirection: 0 },
-            { waveHeight: 5.0, wavePeriod: 30, windSpeed: 0, windDirection: 180 },
-            { waveHeight: 1.0, wavePeriod: 10, windSpeed: 5, windDirection: 45 },
+            { swell: { height: 0.1, period: 1, direction: 180 }, wind: { height: 1.5, direction: 0 } },
+            { swell: { height: 5.0, period: 30, direction: 90 }, wind: { height: 0, direction: 180 } },
+            { swell: { height: 1.0, period: 10, direction: 315 }, wind: { height: 0.5, direction: 45 } },
         ];
 
         testCases.forEach(current => {
