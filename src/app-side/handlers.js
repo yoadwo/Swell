@@ -1,6 +1,8 @@
+import { calculateScore } from "../utils/score.js";
+import { loadBeach } from "../utils/phone-storage.js";
+
 /**
- * Forecast request handlers - pure logic separated from BLE/native code
- * Can be unit tested without running the app
+ * Handle GET_FORECAST request - main async entry point
  * 
  * Flow:
  * 1. Load beach (name, lat, lon) from storage
@@ -8,26 +10,6 @@
  * 3. Calculate score from forecast conditions
  * 4. Aggregate result: { beach, score, current, ... }
  * 5. Return final payload
- */
-
-import { calculateScore } from "../utils/score.js";
-import { loadBeach } from "../utils/phone-storage.js";
-
-/**
- * Fetch forecast data using injected HTTP client
- * Private method
- * 
- * @param {number} lat - Latitude
- * @param {number} lon - Longitude
- * @param {HttpClient} httpClient - HTTP client instance
- * @returns {Promise<Object>} - Raw forecast data {current, hourly, weather, ...}
- */
-async function fetchForecast(lat, lon, httpClient) {
-  return httpClient.fetch(lat, lon);
-}
-
-/**
- * Handle GET_FORECAST request - main async entry point
  * 
  * @param {Object} storage - settingsStorage object (from Zepp environment)
  * @param {HttpClient} httpClient - HTTP client instance
@@ -66,4 +48,17 @@ export async function handleGetForecastRequestAsync(storage, httpClient) {
   };
   console.log('Forecast payload aggregated for:', payload.beach);
   return payload;
+}
+
+/**
+ * Fetch forecast data using injected HTTP client
+ * Private method
+ * 
+ * @param {number} lat - Latitude
+ * @param {number} lon - Longitude
+ * @param {HttpClient} httpClient - HTTP client instance
+ * @returns {Promise<Object>} - Raw forecast data {current, hourly, weather, ...}
+ */
+async function fetchForecast(lat, lon, httpClient) {
+  return httpClient.fetch(lat, lon);
 }

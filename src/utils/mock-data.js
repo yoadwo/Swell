@@ -46,7 +46,7 @@ export const MOCK_FORECAST_MEDIUM = {
     temperature: 26,
     uvIndex: 6,
   },
-  updatedAt: Math.floor(Date.now() / 1000),
+  updatedAt: 1772882880,
 };
 
 export const MOCK_FORECAST_LOW = {

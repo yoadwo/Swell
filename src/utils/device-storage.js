@@ -23,7 +23,7 @@
  */
 
 import { log as Logger } from "@zos/utils";
-import { storage } from "@zos/storage";
+import { localStorage } from "@zos/storage";
 
 const logger = Logger.getLogger("utils.device-storage");
 const FORECAST_KEY = "forecast_cache";
@@ -31,44 +31,30 @@ const FORECAST_KEY = "forecast_cache";
 /**
  * Save forecast payload to device storage
  * @param {ForecastPayload} payload
+ * @throws {Error} - If localStorage is not available
  */
 export function saveForecast(payload) {
-  logger.log("Saving forecast:", payload?.beach);
-  try {
-    storage.setItem(FORECAST_KEY, JSON.stringify(payload));
-    logger.log("Forecast saved");
-  } catch (e) {
-    logger.error("Failed to save forecast:", e);
+  if (localStorage == null) {
+    throw new Error("localStorage not found");
   }
+  localStorage.setItem(FORECAST_KEY, JSON.stringify(payload));
+  logger.debug("Forecast saved successfully for payload", payload);
 }
 
 /**
  * Load forecast from device storage
  * @returns {ForecastPayload|null}
+ * @throws {Error} - If localStorage is not available
  */
 export function loadForecast() {
-  logger.log("Loading forecast from device storage");
-  try {
-    const raw = storage.getItem(FORECAST_KEY);
-    if (raw) {
-      logger.log("Found cached forecast");
-      return JSON.parse(raw);
-    }
-    logger.log("No cached forecast");
-  } catch (e) {
-    logger.error("Failed to load forecast:", e);
+  if (localStorage == null) {
+    throw new Error("localStorage not found");
   }
+  const raw = localStorage.getItem(FORECAST_KEY);
+  if (raw) {
+    logger.info("Found cached forecast");
+    return JSON.parse(raw);
+  }
+  logger.info("No cached forecast");
   return null;
-}
-
-/**
- * Clear cached forecast from device storage
- */
-export function clearForecast() {
-  try {
-    storage.removeItem(FORECAST_KEY);
-    logger.log("Cache cleared");
-  } catch (e) {
-    logger.error("Failed to clear forecast:", e);
-  }
 }

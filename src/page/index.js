@@ -13,7 +13,7 @@ let titleWidget, beachNameWidget, iconWidget, scoreCircle, scoreTextWidget, mess
 Page(
   BasePage({
     build() {
-      logger.log("Building index page");
+      logger.debug("Building index page");
       titleWidget = hmUI.createWidget(hmUI.widget.TEXT, {
         ...MAIN_PAGE_LAYOUT.TITLE,
         text: "Swell Index",
@@ -52,46 +52,61 @@ Page(
         text_style: hmUI.text_style.NONE,
       });
 
-      const cached = loadForecast();
-      logger.debug("Cached forecast:", cached);
+      let cached = null;
+      try {
+        cached = loadForecast();
+        logger.info("Forecast loaded from device storage:", cached);
+      } catch (e) {
+        logger.warn(`Could not use device storage due to: ${e.message}, fetching fresh data`);
+      }
+
       if (isCacheFresh(cached)) {
-        logger.log("Cache is fresh, showing cached data");
+        logger.info("Rendering data from for beach: %s", cached.beach);
         this.renderForecast(cached);
-      } else if (cached) {
-        logger.log("Cache is stale, showing loading indicator");
-        this.renderLoading();
-        this.requestFreshData();
       } else {
-        logger.log("No cached forecast, requesting fresh data");
+        logger.info("Cache missing or stale, fetching new data");
         this.renderLoading();
-        this.requestFreshData();
+        this.requestFreshData()
+          .then((data) => {
+            if (data) {
+              try {
+                logger.debug("saving forecast");
+                saveForecast(data);
+              } catch (e) {
+                logger.warn(`Could not save forecast: ${e.message}`);
+              }
+              this.renderForecast(data);
+            } else {
+              this.renderNoBeachSelected();
+            }
+          })
+          .catch((err) => {
+            logger.error("Failed to fetch forecast:", err);
+            this.renderError();
+          });
       }
     },
 
     requestFreshData() {
       logger.debug("Requesting fresh data");
-      this.request({ method: "GET_FORECAST" })
+      return this.request({ method: "GET_FORECAST" })
         .then((data) => {
-          if (data && data.beach) {
-            logger.log("Received fresh forecast for:", data.beach);
-            saveForecast(data);
-            this.renderForecast(data);
-          } else if (data && data.error) {
-            logger.error("API error:", data.error);
-            this.renderServiceError(data.error);
+          if (data) {
+            if (data.error) {
+              logger.error("API error:", data.error);
+              throw new Error(data.error);
+            }
+            logger.info("Received fresh forecast for:", data.beach);
+            return data;
           } else {
-            logger.log("No beach selected in settings");
-            this.renderNoBeachSelected();
+            logger.info("No beach selected in settings");
+            return null;
           }
-        })
-        .catch((err) => {
-          logger.error("Failed to fetch forecast:", err);
-          this.renderError();
         });
     },
 
     renderForecast(data) {
-      logger.debug("Rendering forecast:", data);
+      logger.debug("Rendering forecast");
       beachNameWidget.setProperty(hmUI.prop.TEXT, data.beach);
       const state = getTrafficLightState(data.score);
       scoreTextWidget.setProperty(hmUI.prop.COLOR, state.color);

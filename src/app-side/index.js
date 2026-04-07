@@ -1,8 +1,10 @@
 import { BaseSideService, settingsLib } from "@zeppos/zml/base-side";
 import { handleGetForecastRequestAsync } from "./handlers.js";
-import { createHttpClient } from "../utils/http.js";
+import { createHttpClient, createMockHttpClient } from "../utils/http.js";
 
-const httpClient = createHttpClient();
+
+// const httpClient = createHttpClient();
+const httpClient = createMockHttpClient("medium");
 
 AppSideService(
   BaseSideService({
@@ -17,7 +19,7 @@ AppSideService(
           })
           .catch(err => {
             console.error("Error handling GET_FORECAST:", err);
-            res(err);
+            res({ error: err.message || String(err) });
           });
       }
     },

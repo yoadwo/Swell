@@ -210,8 +210,8 @@ res(null, payload);
 
 **4.2 Cache forecast**
 
-- Store payload in `@zos/storage` under key `forecast_cache`.
-- Store timestamp under `forecast_timestamp`.
+- Store payload in `@zos/storage` (localStorage) under key `forecast_cache`.
+- Uses `device-storage.js` helper.
 
 **4.3 Update UI with real score**
 
@@ -222,8 +222,15 @@ res(null, payload);
 
 - Uses 1h cache when possible, otherwise fetches new data.
 - **Fresh cache (<1h):** Show cached data immediately, no request.
-- **Stale cache (>1h):** Show "Loading...", fetch new data, then replace.
-- **No cache:** Show "No Data" — do not request. Indicates a problem (e.g., no beach selected).
+- **Stale cache (>1h) or no cache:** Show "Loading...", fetch new data, then replace.
+- Uses `loadForecast()` and `saveForecast()`.
+- Optional: can proceed if storage object not found.
+
+**4.4 Error Handling**
+
+- Side Service returns `{ error: "message" }` on API failures (429, 529, etc.)
+- Page checks for `data.error` and throws to trigger error UI
+- Messages: "Service Error" + actual error in staleWidget
 
 ---
 
@@ -322,7 +329,7 @@ swell/
 │   ├── device-storage.js     # Forecast cache (watch @zos/storage)
 │   ├── phone-storage.js      # Beach selection (phone settingsStorage)
 │   ├── score.js              # Score calculation
-│   ├── http.js               # HTTP client
+│   ├── http.js               # HTTP client (real + mock)
 │   └── mock-data.js          # Mock forecast data
 └── i18n/
     └── en-US.po
