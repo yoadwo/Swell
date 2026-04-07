@@ -110,8 +110,8 @@ settingsStorage.setItem('selectedBeach', JSON.stringify({ name, lat, lon }));
 
 **2.1 Main page layout**
 
-- **Path:** `page/gt/main/index.page.js`
-- **Layout:** `index.page.r.layout.js` (round 480x480)
+- **Path:** `page/index.js`
+- **Layout:** `index.r.layout.js` (round 480x480)
 - **UI Elements:**
   - Title: "Swell Index"
   - Subtitle: Selected beach name (from cache/storage)
@@ -218,6 +218,13 @@ res(null, payload);
 - Replace mock score with `payload.score`.
 - Show staleness indicator if needed.
 
+#### Caching Strategy:
+
+- Uses 1h cache when possible, otherwise fetches new data.
+- **Fresh cache (<1h):** Show cached data immediately, no request.
+- **Stale cache (>1h):** Show "Loading...", fetch new data, then replace.
+- **No cache:** Show "No Data" — do not request. Indicates a problem (e.g., no beach selected).
+
 ---
 
 ### Phase 5: Conditions Page (FR-3)
@@ -226,7 +233,7 @@ res(null, payload);
 
 **5.1 Page structure**
 
-- **Path:** `page/gt/conditions/index.page.js`
+- **Path:** `page/conditions.js`
 - Read from cached forecast payload.
 
 **5.2 Display parameters**
@@ -241,7 +248,7 @@ See **PRD § 4.2 § Page 2: Conditions Page** (FR-3) for full parameter list and
 
 **6.1 Page structure**
 
-- **Path:** `page/gt/weather/index.page.js`
+- **Path:** `page/weather.js`
 
 **6.2 Display parameters**
 
@@ -255,7 +262,7 @@ See **PRD § 4.2 § Page 3: Weather Page** (FR-4).
 
 **7.1 Page structure**
 
-- **Path:** `page/gt/forecast/index.page.js`
+- **Path:** `page/forecast.js`
 
 **7.2 Display per day**
 
@@ -270,7 +277,7 @@ See **PRD § 4.2 § Page 3: Weather Page** (FR-4).
 
 **8.1 Page structure**
 
-- **Path:** `page/gt/help/index.page.js`
+- **Path:** `page/help.js`
 
 **8.2 Content**
 
@@ -297,32 +304,26 @@ swell/
 ├── app.json
 ├── package.json
 ├── assets/
-│   └── gt/
-│       ├── surfboard.png
-│       ├── wave.png
-│       └── coffee.png
 ├── page/
-│   └── gt/
-│       ├── main/
-│       │   ├── index.page.js
-│       │   └── index.page.r.layout.js
-│       ├── conditions/
-│       │   ├── index.page.js
-│       │   └── index.page.r.layout.js
-│       ├── weather/
-│       │   ├── index.page.js
-│       │   └── index.page.r.layout.js
-│       ├── forecast/
-│       │   ├── index.page.js
-│       │   └── index.page.r.layout.js
-│       └── help/
-│           ├── index.page.js
-│           └── index.page.r.layout.js
+│   ├── index.js              # Main page (Swell Index)
+│   ├── index.r.layout.js     # Round layout
+│   ├── index.s.layout.js     # Square layout
+│   ├── conditions.js         # Conditions page
+│   ├── weather.js            # Weather page
+│   ├── forecast.js           # Forecast page
+│   └── help.js               # Help page
 ├── app-side/
-│   └── index.js
+│   ├── index.js              # Side Service
+│   └── handlers.js           # Forecast logic
 ├── setting/
-│   ├── index.js
-│   └── beaches.js
+│   ├── index.js              # Settings App
+│   └── beaches.js            # Beach list
+├── utils/
+│   ├── device-storage.js     # Forecast cache (watch @zos/storage)
+│   ├── phone-storage.js      # Beach selection (phone settingsStorage)
+│   ├── score.js              # Score calculation
+│   ├── http.js               # HTTP client
+│   └── mock-data.js          # Mock forecast data
 └── i18n/
     └── en-US.po
 ```
@@ -345,7 +346,7 @@ swell/
 
 ## Open Questions
 
-1. **Score calculation location:** Phone (Side Service) or Watch (Device App)?
-2. **Beach list:** Which specific Israel beaches to include?
-3. **Score thresholds:** Exact values for green/yellow/red traffic lights?
-4. **Forecast API:** Which provider to use for real data (Open-Meteo Marine, Storm Glass, other)?
+1. **Score calculation location:** ✅ **RESOLVED** — Phone (Side Service). Score calculated in `app-side/handlers.js`.
+2. **Beach list:** ✅ **RESOLVED** — Implemented in `setting/beaches.js` with 13 Israel beaches.
+3. **Score thresholds:** ✅ **RESOLVED** — Green (7-10), Yellow (4-6), Red (0-3) per PRD.
+4. **Forecast API:** ✅ **RESOLVED** — Open-Meteo Marine + Weather APIs via `utils/http.js`.

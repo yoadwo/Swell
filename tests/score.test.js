@@ -1,11 +1,11 @@
 /**
- * Example unit tests for separated logic
+ * Unit tests for score logic
  * These can be run in Node.js without the watch simulator
  * 
- * Usage: node --test ..tests/score.test.js
+ * Usage: node --test ../tests/score.test.js
  */
 
-import { getTrafficLightState, formatScore } from '../src/page/score.js';
+import { getTrafficLightState, formatScore } from '../src/utils/score.js';
 import { test } from "node:test";
 import assert from "node:assert/strict";
 

@@ -1,18 +1,17 @@
 /**
- * Example unit tests for storage logic
+ * Unit tests for phone storage logic
  * These can be run in Node.js without the watch simulator
  * 
  * Usage: node --test ../tests/storage.test.js
  */
 
-import { saveBeach, loadBeach } from '../src/setting/storage.js';
+import { saveBeach, loadBeach } from '../src/utils/phone-storage.js';
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-// Mock storage implementation
 class MockStorage {
-  constructor() {
-    this.data = {};
+  constructor(data = {}) {
+    this.data = data;
   }
   
   setItem(key, value) {
@@ -29,21 +28,21 @@ test('Save Beach', async (t) => {
     const storage = new MockStorage();
     const beach = { name: 'Frishman', lat: 32.0949, lon: 34.7726 };
     const result = saveBeach(storage, beach);
-    assert(result === true, 'Should return true on success');
+    assert.equal(result, true, 'Should return true on success');
     assert.deepEqual(JSON.parse(storage.getItem('selectedBeach')), beach, 'Beach should be stored');
   });
 
   await t.test('Handles null storage gracefully', () => {
     const beach = { name: 'Frishman', lat: 32.0949, lon: 34.7726 };
     const result = saveBeach(null, beach);
-    assert(result === false, 'Should return false when storage is null');
+    assert.equal(result, false, 'Should return false when storage is null');
   });
 
   await t.test('Handles missing setItem gracefully', () => {
     const storage = { /* no setItem method */ };
     const beach = { name: 'Frishman', lat: 32.0949, lon: 34.7726 };
     const result = saveBeach(storage, beach);
-    assert(result === false, 'Should return false when setItem is missing');
+    assert.equal(result, false, 'Should return false when setItem is missing');
   });
 });
 
@@ -60,24 +59,33 @@ test('Load Beach', async (t) => {
   await t.test('Returns null when no beach stored', () => {
     const storage = new MockStorage();
     const loaded = loadBeach(storage);
-    assert(loaded === null, 'Should return null when beach not found');
+    assert.equal(loaded, null, 'Should return null when beach not found');
   });
 
-  await t.test('Handles null storage gracefully', () => {
-    const loaded = loadBeach(null);
-    assert(loaded === null, 'Should return null when storage is null');
+  await t.test('Throws when storage is null', async () => {
+    await assert.rejects(
+      async () => loadBeach(null),
+      /settingsStorage not available/,
+      'Should throw when storage is null'
+    );
   });
 
-  await t.test('Handles missing getItem gracefully', () => {
+  await t.test('Throws when getItem is missing', async () => {
     const storage = { /* no getItem method */ };
-    const loaded = loadBeach(storage);
-    assert(loaded === null, 'Should return null when getItem is missing');
+    await assert.rejects(
+      async () => loadBeach(storage),
+      /settingsStorage not available/,
+      'Should throw when getItem is missing'
+    );
   });
 
-  await t.test('Handles corrupted JSON gracefully', () => {
+  await t.test('Throws when JSON is corrupted', async () => {
     const storage = new MockStorage();
     storage.setItem('selectedBeach', 'not valid json {');
-    const loaded = loadBeach(storage);
-    assert(loaded === null, 'Should return null on JSON parse error');
+    await assert.rejects(
+      async () => loadBeach(storage),
+      /Unexpected token/,
+      'Should throw on JSON parse error'
+    );
   });
 });

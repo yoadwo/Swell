@@ -1,6 +1,6 @@
 // Settings App for Swell — runs inside the Zepp App settings environment
 import { ISRAEL_BEACHES } from "./beaches";
-import { saveBeach, loadBeach } from "./storage";
+import { saveBeach, loadBeach } from "../utils/phone-storage";
 
 AppSettingsPage({
   state: {

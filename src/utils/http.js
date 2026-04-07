@@ -41,19 +41,14 @@ export function createHttpClient() {
       console.log(`Fetching forecast for lat=${lat}, lon=${lon}`);
       const marineApiUrl = "https://marine-api.open-meteo.com/v1/marine";
       const forecastApiUrl = "https://api.open-meteo.com/v1/forecast";
-      try {
-        // Fetch from both APIs in parallel
-        const [marineResponse, weatherResponse] = await Promise.all([
-          this._fetchMarineAPI(marineApiUrl, lat, lon),
-          this._fetchWeatherAPI(forecastApiUrl, lat, lon),
-        ]);
+      // Fetch from both APIs in parallel
+      const [marineResponse, weatherResponse] = await Promise.all([
+        this._fetchMarineAPI(marineApiUrl, lat, lon),
+        this._fetchWeatherAPI(forecastApiUrl, lat, lon),
+      ]);
 
-        // Normalize and merge responses
-        return this._normalizeResponse(marineResponse, weatherResponse);
-      } catch (error) {
-        console.error(`Failed to fetch forecast: ${error.message}`);
-        throw error;
-      }
+      // Normalize and merge responses
+      return this._normalizeResponse(marineResponse, weatherResponse);
     },
 
     /**

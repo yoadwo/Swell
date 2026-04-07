@@ -36,18 +36,24 @@ test('Forecast Generation', async (t) => {
         assert(payload === null, 'Should return null when no beach selected');
     });
 
-    await t.test('Returns null when storage is not available', async () => {
-        const payload = await handleGetForecastRequestAsync(null, mockHttpClient);
-        assert(payload === null, 'Should return null when storage is null');
+    await t.test('Throws when storage is not available', async () => {
+        await assert.rejects(
+            async () => await handleGetForecastRequestAsync(null, mockHttpClient),
+            /settingsStorage not available/,
+            'Should throw when storage is null'
+        );
     });
 
-    await t.test('Returns null when beach data is corrupted', async () => {
+    await t.test('Throws when beach data is corrupted', async () => {
         const storage = new MockStorage({
             'selectedBeach': 'invalid json {',
         });
 
-        const payload = await handleGetForecastRequestAsync(storage, mockHttpClient);
-        assert(payload === null, 'Should return null on parse error');
+        await assert.rejects(
+            async () => await handleGetForecastRequestAsync(storage, mockHttpClient),
+            /Unexpected token/,
+            'Should throw on parse error'
+        );
     });
 
     await t.test('Returns payload with selected beach from storage', async () => {
@@ -58,7 +64,7 @@ test('Forecast Generation', async (t) => {
 
         const payload = await handleGetForecastRequestAsync(storage, mockHttpClient);
         assert(payload !== null, 'Should return payload when beach is selected');
-        assert.deepEqual(payload.beach, 'Bat Yam', 'Should use beach name from storage');
+        assert.equal(payload.beach, 'Bat Yam', 'Should use beach name from storage');
     });
 });
 
@@ -81,7 +87,7 @@ test('Forecast Payload Structure', async (t) => {
 
         // Timestamp
         assert(payload.updatedAt !== undefined, 'Should include updatedAt');
-        assert(typeof payload.updatedAt === 'number', 'updatedAt should be a number (timestamp)');
+        assert.equal(typeof payload.updatedAt, 'number', 'updatedAt should be a number (timestamp)');
 
         // Current conditions
         const current = payload.current;

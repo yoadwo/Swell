@@ -20,6 +20,43 @@ Per the [Zepp OS Overall Architecture](https://docs.zepp.com/docs/guides/archite
 
 So we **must** split: Settings App = config UI + location; Side Service = fetch + send to watch. Both are part of the same Mini Program and live inside the Zepp App.
 
+### Storage Architecture
+
+Two separate storage systems exist in Zepp OS:
+
+| Storage | Global Name | Location | Shared Between | Purpose |
+|---------|-------------|----------|---------------|---------|
+| **settingsStorage** | N/A (passed as object) | **Phone** (Zepp App) | Settings App ↔ Side Service | Beach selection |
+| **@zos/storage** | `storage` | **Watch** (Device App) | Device App only | Forecast cache |
+
+**settingsStorage** (phone):
+- Used by: Settings App (writes), Side Service (reads)
+- Contains: `selectedBeach: {name, lat, lon}`
+- NOT accessible from Device App (watch)
+
+**@zos/storage** (watch):
+- Used by: Device App (reads/writes)
+- Contains: `forecast_cache` (full forecast payload)
+- NOT accessible from phone components
+
+**Data Flow:**
+```
+Settings App ──writes──▶ settingsStorage ◀──reads── Side Service
+                                               │
+                                          fetches API
+                                               │
+                                               ▼
+                                          BLE (this.request)
+                                               │
+                                               ▼
+                                    Device App (watch)
+                                               │
+                                          saves to storage
+                                               │
+                                               ▼
+                              @zos/storage (forecast_cache)
+```
+
 ---
 
 ## 2. Product Overview
