@@ -1,4 +1,4 @@
-# Surf Forecast – Product Requirements Document
+# Swell - Surf Forecast Watch App: Product Requirements Document
 
 ## 1. Terminology (Official Zepp OS Terms)
 
@@ -61,7 +61,7 @@ Settings App ──writes──▶ settingsStorage ◀──reads── Side Ser
 
 ## 2. Product Overview
 
-**Surf Forecast** is a Zepp OS Mini Program for Amazfit smartwatches that displays surfing conditions at a glance. The app delivers wave forecasts (height, period, direction, and a composite "surfability" score) to the watch, rendered as both numeric data and a visual graph. Optionally, it can show real-time session metrics (heart rate, distance, GPS track) for surfers who want to log their sessions.
+**Swell** is a Zepp OS Mini Program for Amazfit smartwatches that displays surfing conditions at a glance. The app delivers wave forecasts (height, period, direction, and a composite "surfability" score) to the watch, rendered as both numeric data and a visual graph. Optionally, it can show real-time session metrics (heart rate, distance, GPS track) for surfers who want to log their sessions.
 
 The app provides **two entry points on the watch**: (1) the **Device App** — when the user taps the app icon, the Device App opens (forecast and graph pages) to check the forecast before heading out (request/cache data, then view); (2) a **Workout Extension** so that when the user starts the built-in Surf workout, the extension can show the cached forecast (and later, session stats). Forecast data is fetched by the **Side Service** on the phone and sent to the Device App; when the phone is disconnected, the watch shows the last synced (cached) forecast.
 
@@ -277,7 +277,7 @@ The Device App contains the following swipeable pages:
 ### In Scope (v1)
 
 **Device App (watch) — 5 swipeable pages:**
-- **Main Page:** "Swell Index" with traffic light system (Go Crazy / Have Fun / Better Get Coffee)
+- **Main Page:** "Swell Index" with "traffic light" scoring
 - **Conditions Page:** Wave height, direction, period; wind speed, direction; sunrise/sunset
 - **Weather Page:** Temperature, UV index
 - **Forecast Page:** 3–4 day outlook with wave height, period, wind, score
@@ -294,7 +294,7 @@ The Device App contains the following swipeable pages:
 **Other:**
 - **Workout Extension (watch):** Compact cached forecast view during surf workout
 - **Offline cache:** Watch stores last received forecast for disconnected viewing
-- **Traffic light logic:** Color-coded go/no-go indicator based on composite score
+- **Traffic light logic:** Color-coded indicator based on composite score
 
 ### Out of Scope (v1)
 
@@ -395,10 +395,16 @@ Score = Average(swellHeightScore, swellPeriodScore, windImpactScore) × (10/3)
 ### FR-7: Side Service – Fetch Forecast
 
 - Accept message from Device App ("get forecast").
-- Read user’s selected beach coordinates from `settingsStorage`.
+- Read user's selected beach coordinates from `settingsStorage`.
 - Call forecast API via `fetch()`.
 - Parse response into compact payload.
 - Send payload to Device App via MessageBuilder.
+
+**API Provider:** Open-Meteo (free, no API key required)
+- **Marine API:** `https://marine-api.open-meteo.com/v1/marine` — provides swell height, period, direction, wind wave height/direction
+- **Weather API:** `https://api.open-meteo.com/v1/forecast` — provides temperature, UV index, wind speed, sunrise/sunset
+
+Both APIs are called in parallel and responses are normalized into a single payload.
 
 ### FR-8: Offline Cache
 
@@ -465,8 +471,5 @@ Score = Average(swellHeightScore, swellPeriodScore, windImpactScore) × (10/3)
 
 ## 10. Open Questions
 
-1. Which surf forecast API to use? (Free tier, rate limits, geographic coverage for Israel beaches.)
-2. Should the composite "surfability" score be computed on the phone (Side Service) or the watch (Device App)?
-3. What are the exact score thresholds for traffic light colors? (TBD based on local Israel beach conditions.)
-4. v2 sensor features: should session recording start automatically when the user starts a workout, or be manually toggled?
-5. Which specific beaches in Israel should be included in the initial list?
+1. v2 sensor features: should session recording start automatically when the user starts a workout, or be manually toggled?
+2. Should the app support multiple saved beaches, or just one?

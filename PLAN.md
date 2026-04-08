@@ -1,5 +1,5 @@
 ---
-name: Swell Surf Forecast App
+name: Swell - Surf Forecast Watch App
 overview: Build a Zepp OS Mini Program for Amazfit watches that displays surf forecasts with a traffic light "Swell Index" system, configurable via Settings App (Israel beaches), with offline cache and Workout Extension.
 todos: []
 isProject: false
