@@ -1,32 +1,68 @@
 import * as hmUI from "@zos/ui";
 import { px } from "@zos/utils";
 
-import {
-  DEFAULT_COLOR,
-  DEFAULT_COLOR_TRANSPARENT,
-} from "../utils/config/constants";
 import { DEVICE_WIDTH } from "../utils/config/device";
 
-export const FETCH_BUTTON = {
-  x: (DEVICE_WIDTH - px(340)) / 2,
-  y: px(280),
-  w: px(340),
-  h: px(80),
-  text_size: px(36),
-  radius: px(12),
-  normal_color: DEFAULT_COLOR,
-  press_color: DEFAULT_COLOR_TRANSPARENT,
-  text: "Fetch Data",
-};
+const SQUARE_WIDTH = DEVICE_WIDTH;
 
-export const FETCH_RESULT_TEXT = {
-  x: px(50),
-  y: px(100),
-  w: DEVICE_WIDTH - 2 * px(50),
-  h: px(160),
-  color: 0xffffff,
-  text_size: px(36),
-  align_h: hmUI.align.CENTER_H,
-  align_v: hmUI.align.CENTER_V,
-  text_style: hmUI.text_style.WRAP,
+export const MAIN_PAGE_LAYOUT = {
+  TITLE: {
+    x: 0,
+    y: px(20),
+    w: SQUARE_WIDTH,
+    h: px(50),
+    text_size: px(36),
+    color: 0xffffff,
+    align_h: hmUI.align.CENTER_H,
+    align_v: hmUI.align.CENTER_V,
+    text_style: hmUI.text_style.NONE,
+  },
+
+  BEACH_NAME: {
+    x: 0,
+    y: px(80),
+    w: SQUARE_WIDTH,
+    h: px(40),
+    text_size: px(24),
+    color: 0xcccccc,
+    align_h: hmUI.align.CENTER_H,
+    align_v: hmUI.align.CENTER_V,
+    text_style: hmUI.text_style.NONE,
+  },
+
+  SCORE_TEXT: {
+    x: 0,
+    y: px(140),
+    w: SQUARE_WIDTH,
+    h: px(80),
+    text_size: px(64),
+    color: 0xffffff,
+    align_h: hmUI.align.CENTER_H,
+    align_v: hmUI.align.CENTER_V,
+    text_style: hmUI.text_style.NONE,
+  },
+
+  ICON_MESSAGE: {
+    x: 0,
+    y: px(240),
+    w: SQUARE_WIDTH,
+    h: px(50),
+    text_size: px(28),
+    color: 0xffffff,
+    align_h: hmUI.align.CENTER_H,
+    align_v: hmUI.align.CENTER_V,
+    text_style: hmUI.text_style.WRAP,
+  },
+
+  STALE: {
+    x: 0,
+    y: px(360),
+    w: SQUARE_WIDTH,
+    h: px(30),
+    text_size: px(18),
+    color: 0x888888,
+    align_h: hmUI.align.CENTER_H,
+    align_v: hmUI.align.CENTER_V,
+    text_style: hmUI.text_style.NONE,
+  },
 };

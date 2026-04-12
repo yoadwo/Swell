@@ -4,7 +4,7 @@ import { createHttpClient, createMockHttpClient } from "../utils/http.js";
 
 
 // const httpClient = createHttpClient();
-const httpClient = createMockHttpClient("medium");
+const httpClient = createMockHttpClient("low");
 
 AppSideService(
   BaseSideService({

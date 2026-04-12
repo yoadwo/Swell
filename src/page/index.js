@@ -10,14 +10,15 @@ const logger = Logger.getLogger("page.index");
 
 const CACHE_FRESHNESS_SECONDS = 3600;
 
-let titleWidget, beachNameWidget, iconWidget, scoreCircle, scoreTextWidget, messageWidget, staleWidget;
+let beachNameWidget, scoreTextWidget, iconMessageWidget, staleWidget;
 
 Page(
   BasePage({
     build() {
       logger.debug("Building index page");
       setupGestures(0);
-      titleWidget = hmUI.createWidget(hmUI.widget.TEXT, {
+
+      hmUI.createWidget(hmUI.widget.TEXT, {
         ...MAIN_PAGE_LAYOUT.TITLE,
         text: "Swell Index",
       });
@@ -26,33 +27,16 @@ Page(
         ...MAIN_PAGE_LAYOUT.BEACH_NAME,
       });
 
-      iconWidget = hmUI.createWidget(hmUI.widget.TEXT, {
-        ...MAIN_PAGE_LAYOUT.ICON,
-        text: "🌊",
-      });
-
-      scoreCircle = hmUI.createWidget(hmUI.widget.CIRCLE, {
-        ...MAIN_PAGE_LAYOUT.SCORE_CIRCLE,
-      });
-
       scoreTextWidget = hmUI.createWidget(hmUI.widget.TEXT, {
         ...MAIN_PAGE_LAYOUT.SCORE_TEXT,
       });
 
-      messageWidget = hmUI.createWidget(hmUI.widget.TEXT, {
-        ...MAIN_PAGE_LAYOUT.MESSAGE_TEXT,
+      iconMessageWidget = hmUI.createWidget(hmUI.widget.TEXT, {
+        ...MAIN_PAGE_LAYOUT.ICON_MESSAGE,
       });
 
       staleWidget = hmUI.createWidget(hmUI.widget.TEXT, {
-        x: 0,
-        y: 440,
-        w: 480,
-        h: 30,
-        text_size: 18,
-        color: 0x888888,
-        align_h: hmUI.align.CENTER_H,
-        align_v: hmUI.align.CENTER_V,
-        text_style: hmUI.text_style.NONE,
+        ...MAIN_PAGE_LAYOUT.STALE,
       });
 
       let cached = null;
@@ -114,9 +98,7 @@ Page(
       const state = getTrafficLightState(data.score);
       scoreTextWidget.setProperty(hmUI.prop.COLOR, state.color);
       scoreTextWidget.setProperty(hmUI.prop.TEXT, `${data.score.toFixed(0)}/10`);
-      iconWidget.setProperty(hmUI.prop.TEXT, state.icon);
-      messageWidget.setProperty(hmUI.prop.TEXT, state.text);
-      scoreCircle.setProperty(hmUI.prop.COLOR, 0x1a1a1a);
+      iconMessageWidget.setProperty(hmUI.prop.TEXT, `${state.text} ${state.icon}`);
       staleWidget.setProperty(hmUI.prop.TEXT, "");
     },
 
@@ -125,9 +107,7 @@ Page(
       beachNameWidget.setProperty(hmUI.prop.TEXT, "Loading...");
       scoreTextWidget.setProperty(hmUI.prop.COLOR, 0x888888);
       scoreTextWidget.setProperty(hmUI.prop.TEXT, "...");
-      iconWidget.setProperty(hmUI.prop.TEXT, "🌊");
-      messageWidget.setProperty(hmUI.prop.TEXT, "");
-      scoreCircle.setProperty(hmUI.prop.COLOR, 0x1a1a1a);
+      iconMessageWidget.setProperty(hmUI.prop.TEXT, "");
       staleWidget.setProperty(hmUI.prop.TEXT, "");
     },
 
@@ -136,9 +116,7 @@ Page(
       beachNameWidget.setProperty(hmUI.prop.TEXT, "No Beach Selected");
       scoreTextWidget.setProperty(hmUI.prop.COLOR, 0x888888);
       scoreTextWidget.setProperty(hmUI.prop.TEXT, "-");
-      iconWidget.setProperty(hmUI.prop.TEXT, "⚙️");
-      messageWidget.setProperty(hmUI.prop.TEXT, "Go to Settings");
-      scoreCircle.setProperty(hmUI.prop.COLOR, 0x333333);
+      iconMessageWidget.setProperty(hmUI.prop.TEXT, "Go to Settings ⚙️");
       staleWidget.setProperty(hmUI.prop.TEXT, "Select a beach");
     },
 
@@ -147,9 +125,7 @@ Page(
       beachNameWidget.setProperty(hmUI.prop.TEXT, "Oh no...");
       scoreTextWidget.setProperty(hmUI.prop.COLOR, 0xFF6666);
       scoreTextWidget.setProperty(hmUI.prop.TEXT, "");
-      iconWidget.setProperty(hmUI.prop.TEXT, "⚠️");
-      messageWidget.setProperty(hmUI.prop.TEXT, "Try again later!");
-      scoreCircle.setProperty(hmUI.prop.COLOR, 0x333333);
+      iconMessageWidget.setProperty(hmUI.prop.TEXT, "Try again later! ⚠️");
       staleWidget.setProperty(hmUI.prop.TEXT, "");
     },
 
@@ -158,9 +134,7 @@ Page(
       beachNameWidget.setProperty(hmUI.prop.TEXT, "Service Error");
       scoreTextWidget.setProperty(hmUI.prop.COLOR, 0xFFAA00);
       scoreTextWidget.setProperty(hmUI.prop.TEXT, "");
-      iconWidget.setProperty(hmUI.prop.TEXT, "🌧️");
-      messageWidget.setProperty(hmUI.prop.TEXT, "Try again later!");
-      scoreCircle.setProperty(hmUI.prop.COLOR, 0x333333);
+      iconMessageWidget.setProperty(hmUI.prop.TEXT, "Try again later! 🌧️");
       staleWidget.setProperty(hmUI.prop.TEXT, errorMessage);
     },
   })
