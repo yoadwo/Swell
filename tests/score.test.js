@@ -5,7 +5,7 @@
  * Usage: node --test ../tests/score.test.js
  */
 
-import { getTrafficLightState, formatScore } from '../src/utils/score.js';
+import { getTrafficLightState } from '../src/utils/score.js';
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
@@ -57,29 +57,3 @@ test('Traffic Light State', async (t) => {
   });
 });
 
-test('Format Score', async (t) => {
-  await t.test('Formats positive score with decimal', () => {
-    const result = formatScore(8.567);
-    assert.equal(result, '8.6', 'Should format to 1 decimal place');
-  });
-
-  await t.test('Formats score 0', () => {
-    const result = formatScore(0);
-    assert.equal(result, '0.0', 'Should format 0 as 0.0');
-  });
-
-  await t.test('Handles null score', () => {
-    const result = formatScore(null);
-    assert.equal(result, '-', 'Should return "-" for null');
-  });
-
-  await t.test('Handles undefined score', () => {
-    const result = formatScore(undefined);
-    assert.equal(result, '-', 'Should return "-" for undefined');
-  });
-
-  await t.test('Formats score 10', () => {
-    const result = formatScore(10);
-    assert.equal(result, '10.0', 'Should format 10 as 10.0');
-  });
-});

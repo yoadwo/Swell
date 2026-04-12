@@ -60,6 +60,7 @@ export function createHttpClient() {
      */
     async _fetchMarineAPI(apiUrl, lat, lon) {
       const url = new URL(apiUrl);
+      console.debug('marine API: ', apiUrl);
       url.searchParams.append('latitude', lat);
       url.searchParams.append('longitude', lon);
       url.searchParams.append('current', [
@@ -87,6 +88,7 @@ export function createHttpClient() {
      */
     async _fetchWeatherAPI(apiUrl, lat, lon) {
       const url = new URL(apiUrl);
+      console.debug('weather API: ', apiUrl);
       url.searchParams.append('latitude', lat);
       url.searchParams.append('longitude', lon);
       url.searchParams.append('current', [
@@ -114,6 +116,8 @@ export function createHttpClient() {
       const marineCurrent = marineData.current || {};
       const weatherCurrent = weatherData.current || {};
       const weatherDaily = weatherData.daily || {};
+      console.debug("marine API response: ", marineData);
+      console.debug("weather API response: ", weatherData);
 
       // Water temperature: Marine API doesn't provide it; use a placeholder or hardcoded value
       // TODO: Consider adding water temperature from a separate API if available
@@ -163,7 +167,7 @@ export function createHttpClient() {
  * @param {string} mockLevel - "high", "medium", or "low" 
  * @returns {HttpClient} - Object with fetch method that returns mock data
  */
-export function createMockHttpClient(mockLevel = "high") {
+export function createMockHttpClient(mockLevel) {
   return {
     /**
      * Return mock forecast data (no actual HTTP)

@@ -2,7 +2,7 @@
 export const ISRAEL_BEACHES = [
   { name: "Frishman", lat: 32.0949, lon: 34.7726 },
   { name: "Hilton", lat: 32.0989, lon: 34.7710 },
-  { name: "Tamar", lat: 32.0876, lon: 34.7742 },
+  { name: "Dolphinarium", lat: 32.0694, lon: 34.7674 },
   { name: "Gordon", lat: 32.0820, lon: 34.7756 },
   { name: "Bugrashov", lat: 32.0790, lon: 34.7765 },
   { name: "Metzitzim", lat: 32.0750, lon: 34.7775 },

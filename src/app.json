@@ -28,7 +28,8 @@
       "module": {
         "page": {
           "pages": [
-            "page/index"
+            "page/index",
+            "page/conditions"
           ]
         },
         "app-side": {

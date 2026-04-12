@@ -186,14 +186,4 @@ export function getTrafficLightState(score) {
   };
 }
 
-/**
- * Format score for display
- * @param {number} score - Raw score (0-10)
- * @returns {string} - Formatted score with decimal
- */
-export function formatScore(score) {
-  if (score === null || score === undefined) {
-    return '-';
-  }
-  return score.toFixed(1);
-}
+

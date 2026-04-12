@@ -1,9 +1,11 @@
 import * as hmUI from "@zos/ui";
 import { BasePage } from "@zeppos/zml/base-page";
-import { getTrafficLightState, formatScore } from "../utils/score";
+import { getTrafficLightState } from "../utils/score";
 import { loadForecast, saveForecast } from "../utils/device-storage";
 import { MAIN_PAGE_LAYOUT } from "./index.r.layout";
 import { log as Logger } from "@zos/utils";
+import { setupGestures } from "../utils/gestures";
+
 const logger = Logger.getLogger("page.index");
 
 const CACHE_FRESHNESS_SECONDS = 3600;
@@ -14,6 +16,7 @@ Page(
   BasePage({
     build() {
       logger.debug("Building index page");
+      setupGestures(0);
       titleWidget = hmUI.createWidget(hmUI.widget.TEXT, {
         ...MAIN_PAGE_LAYOUT.TITLE,
         text: "Swell Index",
@@ -110,7 +113,7 @@ Page(
       beachNameWidget.setProperty(hmUI.prop.TEXT, data.beach);
       const state = getTrafficLightState(data.score);
       scoreTextWidget.setProperty(hmUI.prop.COLOR, state.color);
-      scoreTextWidget.setProperty(hmUI.prop.TEXT, formatScore(data.score));
+      scoreTextWidget.setProperty(hmUI.prop.TEXT, `${data.score.toFixed(0)}/10`);
       iconWidget.setProperty(hmUI.prop.TEXT, state.icon);
       messageWidget.setProperty(hmUI.prop.TEXT, state.text);
       scoreCircle.setProperty(hmUI.prop.COLOR, 0x1a1a1a);

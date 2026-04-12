@@ -29,8 +29,8 @@ export const MOCK_FORECAST_HIGH = {
 export const MOCK_FORECAST_MEDIUM = {
   current: {
     swell: {
-      height: 0.9,
-      period: 10,
+      height: 0.8,
+      period: 6,
       direction: 270,
     },
     wind: {
@@ -52,13 +52,14 @@ export const MOCK_FORECAST_MEDIUM = {
 export const MOCK_FORECAST_LOW = {
   current: {
     swell: {
-      height: 0.6,
-      period: 8,
+      height: 0.2,
+      period: 2,
       direction: 180,
     },
     wind: {
       height: 0.8,
-      direction: 45
+      direction: 180,
+      speed: 5
     },
     waterTemp: 18,
   },
@@ -76,7 +77,7 @@ export const MOCK_FORECAST_LOW = {
  * @param {string} level - 'high', 'medium', or 'low'
  * @returns {Object} - Mock forecast payload
  */
-export function getMockForecast(level = 'high') {
+export function getMockForecast(level) {
   switch (level) {
     case 'high':
       return { ...MOCK_FORECAST_HIGH };
