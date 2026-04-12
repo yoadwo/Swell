@@ -4,11 +4,11 @@ import { loadForecast } from "../utils/device-storage";
 import { CONDITIONS_PAGE_LAYOUT } from "./conditions.r.layout";
 import { log as Logger } from "@zos/utils";
 import { setupGestures } from "../utils/gestures";
+import { setScrollMode, SCROLL_MODE_NORMAL } from "@zos/page";
 
 const logger = Logger.getLogger("page.conditions");
 
-let titleWidget, waveHeightWidget, wavePeriodWidget, waveDirectionWidget;
-let windSpeedWidget, windDirectionWidget, waterTempWidget, sunriseSunsetWidget;
+let waveWidget, windWidget, waterTempWidget, sunriseSunsetWidget;
 
 Page(
   BasePage({
@@ -16,29 +16,14 @@ Page(
       logger.debug("Building conditions page");
       setupGestures(1);
 
-      titleWidget = hmUI.createWidget(hmUI.widget.TEXT, {
-        ...CONDITIONS_PAGE_LAYOUT.TITLE,
-        text: "Conditions",
+      setScrollMode({ mode: SCROLL_MODE_NORMAL });
+
+      waveWidget = hmUI.createWidget(hmUI.widget.TEXT, {
+        ...CONDITIONS_PAGE_LAYOUT.WAVE,
       });
 
-      waveHeightWidget = hmUI.createWidget(hmUI.widget.TEXT, {
-        ...CONDITIONS_PAGE_LAYOUT.WAVE_HEIGHT,
-      });
-
-      wavePeriodWidget = hmUI.createWidget(hmUI.widget.TEXT, {
-        ...CONDITIONS_PAGE_LAYOUT.WAVE_PERIOD,
-      });
-
-      waveDirectionWidget = hmUI.createWidget(hmUI.widget.TEXT, {
-        ...CONDITIONS_PAGE_LAYOUT.WAVE_DIRECTION,
-      });
-
-      windSpeedWidget = hmUI.createWidget(hmUI.widget.TEXT, {
-        ...CONDITIONS_PAGE_LAYOUT.WIND_SPEED,
-      });
-
-      windDirectionWidget = hmUI.createWidget(hmUI.widget.TEXT, {
-        ...CONDITIONS_PAGE_LAYOUT.WIND_DIRECTION,
+      windWidget = hmUI.createWidget(hmUI.widget.TEXT, {
+        ...CONDITIONS_PAGE_LAYOUT.WIND,
       });
 
       waterTempWidget = hmUI.createWidget(hmUI.widget.TEXT, {
@@ -66,69 +51,45 @@ Page(
 
     renderConditions(data) {
       logger.debug("Rendering conditions");
-      const current = data.current;
+      const c = data.current;
 
-      waveHeightWidget.setProperty(
+      waveWidget.setProperty(
         hmUI.prop.TEXT,
-        `${current.swell.height.toFixed(1)}m`
+        `🌊\n${c.swell.height.toFixed(1)}m\n${c.swell.period}s\n${formatDir(c.swell.direction)}`
       );
 
-      wavePeriodWidget.setProperty(
+      windWidget.setProperty(
         hmUI.prop.TEXT,
-        `${current.swell.period}s`
-      );
-
-      waveDirectionWidget.setProperty(
-        hmUI.prop.TEXT,
-        formatDirection(current.swell.direction)
-      );
-
-      windSpeedWidget.setProperty(
-        hmUI.prop.TEXT,
-        `${current.wind.speed} km/h`
-      );
-
-      windDirectionWidget.setProperty(
-        hmUI.prop.TEXT,
-        formatDirection(current.wind.direction, true)
+        `💨\n${c.wind.speed} km/h\n${formatDir(c.wind.direction)}`
       );
 
       waterTempWidget.setProperty(
         hmUI.prop.TEXT,
-        `${current.waterTemp}°C`
+        `🌡️\n${c.waterTemp}°C`
       );
 
       sunriseSunsetWidget.setProperty(
         hmUI.prop.TEXT,
-        `${data.sunrise} - ${data.sunset}`
+        `🌅 ${data.sunrise}\n🌇 ${data.sunset}`
       );
     },
 
     renderNoData() {
       logger.debug("Rendering no data");
-      waveHeightWidget.setProperty(hmUI.prop.TEXT, "-");
-      wavePeriodWidget.setProperty(hmUI.prop.TEXT, "-");
-      waveDirectionWidget.setProperty(hmUI.prop.TEXT, "-");
-      windSpeedWidget.setProperty(hmUI.prop.TEXT, "-");
-      windDirectionWidget.setProperty(hmUI.prop.TEXT, "-");
-      waterTempWidget.setProperty(hmUI.prop.TEXT, "-");
-      sunriseSunsetWidget.setProperty(hmUI.prop.TEXT, "-");
+      waveWidget.setProperty(hmUI.prop.TEXT, "🌊\n-\n-\n-");
+      windWidget.setProperty(hmUI.prop.TEXT, "💨\n-\n-");
+      waterTempWidget.setProperty(hmUI.prop.TEXT, "🌡️\n-");
+      sunriseSunsetWidget.setProperty(hmUI.prop.TEXT, "🌅 -\n🌇 -");
     },
   })
 );
 
-function formatDirection(direction, cardinal = false) {
+function formatDir(direction) {
   if (direction === null || direction === undefined) {
     return "-";
   }
-
-  if (cardinal) {
-    const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
-    const index = Math.round(direction / 45) % 8;
-    return directions[index];
-  }
-
+  const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
   const arrows = ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"];
-  const index = Math.round(direction / 45) % 8;
-  return `${arrows[index]} ${Math.round(direction)}°`;
+  const idx = Math.round(direction / 45) % 8;
+  return `${directions[idx]} ${arrows[idx]}`;
 }
