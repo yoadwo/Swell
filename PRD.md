@@ -361,13 +361,15 @@ Score = Average(swellHeightScore, swellPeriodScore, windImpactScore) × (10/3)
 ### FR-3: Device App – Conditions Page
 
 - Display the following parameters from the latest forecast:
-  - Wave Height (m/ft)
-  - Wave Period (seconds)
-  - Wave Direction (arrow + degrees)
+  - Wave (Swell) Height (m/ft)
+  - Wave (Swell) Period (seconds)
+  - Wave (Swell) Direction (arrow + cardinal)
   - Wind Speed (km/h)
   - Wind Direction (arrow + cardinal)
   - Water Temperature (°C)
   - Sunrise/Sunset Time (HH:MM)
+
+note: Wave and Swell metrics are the same, for that matter.
 
 ### FR-4: Device App – Weather Page
 

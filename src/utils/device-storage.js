@@ -47,6 +47,7 @@ export function saveForecast(payload) {
  * @throws {Error} - If localStorage is not available
  */
 export function loadForecast() {
+  // return null;
   if (localStorage == null) {
     throw new Error("localStorage not found");
   }

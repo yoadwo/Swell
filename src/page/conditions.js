@@ -50,12 +50,12 @@ Page(
     },
 
     renderConditions(data) {
-      logger.debug("Rendering conditions");
+      logger.debug("Rendering conditions for", data.beach);
       const c = data.current;
 
       waveWidget.setProperty(
         hmUI.prop.TEXT,
-        `🌊\n${c.swell.height.toFixed(1)}m\n${c.swell.period}s\n${formatDir(c.swell.direction)}`
+        `🌊\n${c.swell.height.toFixed(1)}m\n${c.swell.period}s  ${formatDir(c.swell.direction)}`
       );
 
       windWidget.setProperty(
@@ -91,5 +91,5 @@ function formatDir(direction) {
   const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
   const arrows = ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"];
   const idx = Math.round(direction / 45) % 8;
-  return `${directions[idx]} ${arrows[idx]}`;
+  return `${directions[idx]}(${arrows[idx]})`;
 }
