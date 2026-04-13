@@ -6,10 +6,10 @@ import { DEVICE_WIDTH } from "../utils/config/device";
 export const CONDITIONS_PAGE_LAYOUT = {
   WAVE: {
     x: px(16),
-    y: px(40),
+    y: px(30),
     w: px(173),
-    h: px(140),
-    text_size: px(28),
+    h: px(110),
+    text_size: px(22),
     color: 0xffffff,
     align_h: hmUI.align.CENTER_H,
     align_v: hmUI.align.TOP,
@@ -17,11 +17,11 @@ export const CONDITIONS_PAGE_LAYOUT = {
   },
 
   WIND: {
-    x: px(203),
-    y: px(40),
+    x: px(201),
+    y: px(30),
     w: px(173),
-    h: px(140),
-    text_size: px(28),
+    h: px(110),
+    text_size: px(22),
     color: 0xffffff,
     align_h: hmUI.align.CENTER_H,
     align_v: hmUI.align.TOP,
@@ -30,10 +30,34 @@ export const CONDITIONS_PAGE_LAYOUT = {
 
   WATER_TEMP: {
     x: px(16),
-    y: px(200),
+    y: px(155),
     w: px(173),
-    h: px(140),
-    text_size: px(28),
+    h: px(110),
+    text_size: px(22),
+    color: 0xffffff,
+    align_h: hmUI.align.CENTER_H,
+    align_v: hmUI.align.TOP,
+    text_style: hmUI.text_style.NONE,
+  },
+
+  AIR_TEMP: {
+    x: px(201),
+    y: px(155),
+    w: px(173),
+    h: px(110),
+    text_size: px(22),
+    color: 0xffffff,
+    align_h: hmUI.align.CENTER_H,
+    align_v: hmUI.align.TOP,
+    text_style: hmUI.text_style.NONE,
+  },
+
+  UV: {
+    x: px(16),
+    y: px(280),
+    w: px(173),
+    h: px(35),
+    text_size: px(16),
     color: 0xffffff,
     align_h: hmUI.align.CENTER_H,
     align_v: hmUI.align.TOP,
@@ -41,11 +65,11 @@ export const CONDITIONS_PAGE_LAYOUT = {
   },
 
   SUNRISE_SUNSET: {
-    x: px(203),
-    y: px(200),
+    x: px(201),
+    y: px(280),
     w: px(173),
-    h: px(140),
-    text_size: px(28),
+    h: px(35),
+    text_size: px(16),
     color: 0xffffff,
     align_h: hmUI.align.CENTER_H,
     align_v: hmUI.align.TOP,

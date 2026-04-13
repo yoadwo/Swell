@@ -4,11 +4,11 @@ import { loadForecast } from "../utils/device-storage";
 import { CONDITIONS_PAGE_LAYOUT } from "./conditions.r.layout";
 import { log as Logger } from "@zos/utils";
 import { setupGestures } from "../utils/gestures";
-import { setScrollMode, SCROLL_MODE_NORMAL } from "@zos/page";
+import { setScrollMode, SCROLL_MODE_FREE } from "@zos/page";
 
 const logger = Logger.getLogger("page.conditions");
 
-let waveWidget, windWidget, waterTempWidget, sunriseSunsetWidget;
+let waveWidget, windWidget, waterTempWidget, airTempWidget, uvWidget, sunriseSunsetWidget;
 
 Page(
   BasePage({
@@ -16,7 +16,7 @@ Page(
       logger.debug("Building conditions page");
       setupGestures(1);
 
-      setScrollMode({ mode: SCROLL_MODE_NORMAL });
+      setScrollMode({ mode: SCROLL_MODE_FREE });
 
       waveWidget = hmUI.createWidget(hmUI.widget.TEXT, {
         ...CONDITIONS_PAGE_LAYOUT.WAVE,
@@ -28,6 +28,14 @@ Page(
 
       waterTempWidget = hmUI.createWidget(hmUI.widget.TEXT, {
         ...CONDITIONS_PAGE_LAYOUT.WATER_TEMP,
+      });
+
+      airTempWidget = hmUI.createWidget(hmUI.widget.TEXT, {
+        ...CONDITIONS_PAGE_LAYOUT.AIR_TEMP,
+      });
+
+      uvWidget = hmUI.createWidget(hmUI.widget.TEXT, {
+        ...CONDITIONS_PAGE_LAYOUT.UV,
       });
 
       sunriseSunsetWidget = hmUI.createWidget(hmUI.widget.TEXT, {
@@ -68,6 +76,16 @@ Page(
         `🌡️\n${c.waterTemp}°C`
       );
 
+      airTempWidget.setProperty(
+        hmUI.prop.TEXT,
+        `🌤️\n${data.weather.temperature}°C`
+      );
+
+      uvWidget.setProperty(
+        hmUI.prop.TEXT,
+        `☀️\nUV ${data.weather.uvIndex}`
+      );
+
       sunriseSunsetWidget.setProperty(
         hmUI.prop.TEXT,
         `🌅 ${data.sunrise}\n🌇 ${data.sunset}`
@@ -79,6 +97,8 @@ Page(
       waveWidget.setProperty(hmUI.prop.TEXT, "🌊\n-\n-\n-");
       windWidget.setProperty(hmUI.prop.TEXT, "💨\n-\n-");
       waterTempWidget.setProperty(hmUI.prop.TEXT, "🌡️\n-");
+      airTempWidget.setProperty(hmUI.prop.TEXT, "🌤️\n-");
+      uvWidget.setProperty(hmUI.prop.TEXT, "☀️\n-");
       sunriseSunsetWidget.setProperty(hmUI.prop.TEXT, "🌅 -\n🌇 -");
     },
   })

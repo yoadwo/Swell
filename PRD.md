@@ -367,9 +367,11 @@ Score = Average(swellHeightScore, swellPeriodScore, windImpactScore) × (10/3)
   - Wind Speed (km/h)
   - Wind Direction (arrow + cardinal)
   - Water Temperature (°C)
+  - Air Temperature (°C)
+  - UV Index (numeric + descriptor: Low/Moderate/High/Very High/Extreme)
   - Sunrise/Sunset Time (HH:MM)
 
-note: Wave and Swell metrics are the same, for that matter.
+note: Wave and Swell metrics are the same. Weather data (air temp, UV) merged into Conditions Page.
 
 ### FR-4: Device App – Weather Page
 
