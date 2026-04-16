@@ -9,10 +9,6 @@
  * 
  * Used by: Device App (page/index/index.js)
  * Read by: Device App pages (main, conditions, weather, forecast, workout extension)
- * 
- * @param {Object} deps - Dependencies (injected for testability)
- * @param {Object} deps.storage - Storage object (typically from @zos/storage)
- * @param {Object} deps.logger - Logger object (optional, from @zos/utils)
  */
 
 /**
@@ -28,18 +24,9 @@
 
 const FORECAST_KEY = "forecast_cache";
 
-let logger = {
-  debug: () => {},
-  info: () => {},
-  warn: () => {},
-  error: () => {},
-};
+import { log as Logger } from "@zos/utils";
+const logger = Logger.getLogger("device.storage");
 
-export function initDeviceStorage(deps) {
-  if (deps.logger) {
-    logger = deps.logger;
-  }
-}
 
 /**
  * Save forecast payload to device storage

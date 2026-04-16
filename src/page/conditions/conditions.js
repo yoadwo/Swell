@@ -1,13 +1,11 @@
 import * as hmUI from "@zos/ui";
 import { BasePage } from "@zeppos/zml/base-page";
-import { loadForecast, initDeviceStorage } from "../../utils/device-storage";
+import { loadForecast } from "../../utils/device-storage";
 import { CONDITIONS_PAGE_LAYOUT } from "./conditions.r.layout";
 import { log as Logger } from "@zos/utils";
 import { setupGestures } from "../../utils/gestures";
 import { setScrollMode, SCROLL_MODE_FREE } from "@zos/page";
 import { localStorage } from "@zos/storage";
-
-initDeviceStorage({ logger: Logger.getLogger("utils.device-storage") });
 
 const logger = Logger.getLogger("page.conditions");
 

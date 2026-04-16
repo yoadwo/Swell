@@ -1,13 +1,11 @@
 import * as hmUI from "@zos/ui";
 import { BasePage } from "@zeppos/zml/base-page";
 import { getTrafficLightState } from "../../utils/score";
-import { loadForecast, saveForecast, initDeviceStorage } from "../../utils/device-storage";
+import { loadForecast, saveForecast } from "../../utils/device-storage";
 import { MAIN_PAGE_LAYOUT } from "./index.r.layout";
 import { log as Logger } from "@zos/utils";
 import { setupGestures } from "../../utils/gestures";
 import { localStorage } from "@zos/storage";
-
-initDeviceStorage({ logger: Logger.getLogger("utils.device-storage") });
 
 const logger = Logger.getLogger("page.index");
 
