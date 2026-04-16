@@ -24,8 +24,14 @@
 
 const FORECAST_KEY = "forecast_cache";
 
-import { log as Logger } from "@zos/utils";
-const logger = Logger.getLogger("device.storage");
+function getLogger() {
+  try {
+    const { log } = require("@zos/utils");
+    return log.getLogger("device.storage");
+  } catch {
+    return console;
+  }
+}
 
 
 /**
@@ -39,7 +45,7 @@ export function saveForecast(storage, payload) {
     throw new Error("storage not found");
   }
   storage.setItem(FORECAST_KEY, JSON.stringify(payload));
-  logger.debug("Forecast saved successfully for payload", payload);
+  getLogger().debug("Forecast saved successfully for payload", payload);
 }
 
 /**
@@ -53,6 +59,7 @@ export function loadForecast(storage) {
     throw new Error("storage not found");
   }
   const raw = storage.getItem(FORECAST_KEY);
+  const logger = getLogger();
   if (raw) {
     logger.info("Found cached forecast");
     return JSON.parse(raw);

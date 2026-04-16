@@ -6,6 +6,7 @@ import { log as Logger } from "@zos/utils";
 import { setupGestures } from "../../utils/gestures";
 import { setScrollMode, SCROLL_MODE_FREE } from "@zos/page";
 import { localStorage } from "@zos/storage";
+import { formatDirection } from "../ui-helpers";
 
 const logger = Logger.getLogger("page.conditions");
 
@@ -64,12 +65,12 @@ Page(
 
       waveWidget.setProperty(
         hmUI.prop.TEXT,
-        `🌊\n${c.swell.height.toFixed(1)}m\n${c.swell.period}s  ${formatDir(c.swell.direction)}`
+        `🌊\n${c.swell.height.toFixed(1)}m\n${c.swell.period}s  ${formatDirection(c.swell.direction)}`
       );
 
       windWidget.setProperty(
         hmUI.prop.TEXT,
-        `💨\n${c.wind.speed} km/h\n${formatDir(c.wind.direction, true)}`
+        `💨\n${c.wind.speed} km/h\n${formatDirection(c.wind.direction, true)}`
       );
 
       waterTempWidget.setProperty(
@@ -104,14 +105,3 @@ Page(
     },
   })
 );
-
-function formatDir(direction, isWind = false) {
-  if (direction === null || direction === undefined) {
-    return "-";
-  }
-  const adjustedDir = isWind ? (direction + 180) % 360 : direction;
-  const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
-  const arrows = ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"];
-  const idx = Math.round(adjustedDir / 45) % 8;
-  return `${directions[idx]}(${arrows[idx]})`;
-}
