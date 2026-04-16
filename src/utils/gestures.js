@@ -1,7 +1,7 @@
 import { replace } from "@zos/router";
 import { onGesture, GESTURE_LEFT, GESTURE_RIGHT } from "@zos/interaction";
 
-const PAGE_URLS = ["page/index", "page/conditions"];
+const PAGE_URLS = ["page/index/index", "page/conditions/conditions"];
 
 export function setupGestures(currentPageIndex) {
   const totalPages = PAGE_URLS.length;

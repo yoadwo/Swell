@@ -1,10 +1,13 @@
 import * as hmUI from "@zos/ui";
 import { BasePage } from "@zeppos/zml/base-page";
-import { loadForecast } from "../utils/device-storage";
+import { loadForecast, initDeviceStorage } from "../../utils/device-storage";
 import { CONDITIONS_PAGE_LAYOUT } from "./conditions.r.layout";
 import { log as Logger } from "@zos/utils";
-import { setupGestures } from "../utils/gestures";
+import { setupGestures } from "../../utils/gestures";
 import { setScrollMode, SCROLL_MODE_FREE } from "@zos/page";
+import { localStorage } from "@zos/storage";
+
+initDeviceStorage({ logger: Logger.getLogger("utils.device-storage") });
 
 const logger = Logger.getLogger("page.conditions");
 
@@ -44,7 +47,7 @@ Page(
 
       let cached = null;
       try {
-        cached = loadForecast();
+        cached = loadForecast(localStorage);
         logger.info("Loaded forecast from device storage:", cached.beach);
       } catch (e) {
         logger.warn(`Could not load forecast: ${e.message}`);
@@ -68,7 +71,7 @@ Page(
 
       windWidget.setProperty(
         hmUI.prop.TEXT,
-        `💨\n${c.wind.speed} km/h\n${formatDir(c.wind.direction)}`
+        `💨\n${c.wind.speed} km/h\n${formatDir(c.wind.direction, true)}`
       );
 
       waterTempWidget.setProperty(
@@ -104,12 +107,13 @@ Page(
   })
 );
 
-function formatDir(direction) {
+function formatDir(direction, isWind = false) {
   if (direction === null || direction === undefined) {
     return "-";
   }
+  const adjustedDir = isWind ? (direction + 180) % 360 : direction;
   const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
   const arrows = ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"];
-  const idx = Math.round(direction / 45) % 8;
+  const idx = Math.round(adjustedDir / 45) % 8;
   return `${directions[idx]}(${arrows[idx]})`;
 }

@@ -1,10 +1,13 @@
 import * as hmUI from "@zos/ui";
 import { BasePage } from "@zeppos/zml/base-page";
-import { getTrafficLightState } from "../utils/score";
-import { loadForecast, saveForecast } from "../utils/device-storage";
+import { getTrafficLightState } from "../../utils/score";
+import { loadForecast, saveForecast, initDeviceStorage } from "../../utils/device-storage";
 import { MAIN_PAGE_LAYOUT } from "./index.r.layout";
 import { log as Logger } from "@zos/utils";
-import { setupGestures } from "../utils/gestures";
+import { setupGestures } from "../../utils/gestures";
+import { localStorage } from "@zos/storage";
+
+initDeviceStorage({ logger: Logger.getLogger("utils.device-storage") });
 
 const logger = Logger.getLogger("page.index");
 
@@ -41,7 +44,7 @@ Page(
 
       let cached = null;
       try {
-        cached = loadForecast();
+        cached = loadForecast(localStorage);
         logger.info("Forecast loaded from device storage:", cached);
       } catch (e) {
         logger.warn(`Could not use device storage due to: ${e.message}, fetching fresh data`);
@@ -58,7 +61,7 @@ Page(
             if (data) {
               try {
                 logger.debug("saving forecast");
-                saveForecast(data);
+                saveForecast(localStorage, data);
               } catch (e) {
                 logger.warn(`Could not save forecast: ${e.message}`);
               }

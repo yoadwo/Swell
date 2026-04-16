@@ -28,8 +28,8 @@
       "module": {
         "page": {
           "pages": [
-            "page/index",
-            "page/conditions"
+            "page/index/index",
+            "page/conditions/conditions"
           ]
         },
         "app-side": {

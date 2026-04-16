@@ -103,7 +103,6 @@ test('Forecast Payload Structure', async (t) => {
     });
 });
 
-
 test('Score Calculation Algorithm', async (t) => {
     
     // Score 3: diff <= 45°

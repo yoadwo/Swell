@@ -7,8 +7,12 @@
  * Data stored here:
  * - forecast_cache: The full forecast payload received from Side Service
  * 
- * Used by: Device App (page/index.js)
+ * Used by: Device App (page/index/index.js)
  * Read by: Device App pages (main, conditions, weather, forecast, workout extension)
+ * 
+ * @param {Object} deps - Dependencies (injected for testability)
+ * @param {Object} deps.storage - Storage object (typically from @zos/storage)
+ * @param {Object} deps.logger - Logger object (optional, from @zos/utils)
  */
 
 /**
@@ -22,36 +26,46 @@
  * @property {Object} weather - Weather (temperature, uvIndex)
  */
 
-import { log as Logger } from "@zos/utils";
-import { localStorage } from "@zos/storage";
-
-const logger = Logger.getLogger("utils.device-storage");
 const FORECAST_KEY = "forecast_cache";
+
+let logger = {
+  debug: () => {},
+  info: () => {},
+  warn: () => {},
+  error: () => {},
+};
+
+export function initDeviceStorage(deps) {
+  if (deps.logger) {
+    logger = deps.logger;
+  }
+}
 
 /**
  * Save forecast payload to device storage
+ * @param {Object} storage - Storage object (injected, typically from @zos/storage)
  * @param {ForecastPayload} payload
- * @throws {Error} - If localStorage is not available
+ * @throws {Error} - If storage is not available
  */
-export function saveForecast(payload) {
-  if (localStorage == null) {
-    throw new Error("localStorage not found");
+export function saveForecast(storage, payload) {
+  if (storage == null || !storage.setItem) {
+    throw new Error("storage not found");
   }
-  localStorage.setItem(FORECAST_KEY, JSON.stringify(payload));
+  storage.setItem(FORECAST_KEY, JSON.stringify(payload));
   logger.debug("Forecast saved successfully for payload", payload);
 }
 
 /**
  * Load forecast from device storage
+ * @param {Object} storage - Storage object (injected, typically from @zos/storage)
  * @returns {ForecastPayload|null}
- * @throws {Error} - If localStorage is not available
+ * @throws {Error} - If storage is not available
  */
-export function loadForecast() {
-  // return null;
-  if (localStorage == null) {
-    throw new Error("localStorage not found");
+export function loadForecast(storage) {
+  if (storage == null || !storage.getItem) {
+    throw new Error("storage not found");
   }
-  const raw = localStorage.getItem(FORECAST_KEY);
+  const raw = storage.getItem(FORECAST_KEY);
   if (raw) {
     logger.info("Found cached forecast");
     return JSON.parse(raw);

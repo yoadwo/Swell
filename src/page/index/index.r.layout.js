@@ -1,12 +1,6 @@
 import * as hmUI from "@zos/ui";
 import { px } from "@zos/utils";
 
-import {
-  DEFAULT_COLOR,
-  DEFAULT_COLOR_TRANSPARENT,
-} from "../utils/config/constants";
-import { DEVICE_WIDTH } from "../utils/config/device";
-
 // Main Page Layout - Traffic Light Swell Index (Round 480x480)
 export const MAIN_PAGE_LAYOUT = {
   TITLE: {

@@ -1,8 +1,6 @@
 import * as hmUI from "@zos/ui";
 import { px } from "@zos/utils";
 
-import { DEVICE_WIDTH } from "../utils/config/device";
-
 export const CONDITIONS_PAGE_LAYOUT = {
   WAVE: {
     x: px(16),
