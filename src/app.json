@@ -29,7 +29,8 @@
         "page": {
           "pages": [
             "page/index/index",
-            "page/conditions/conditions"
+            "page/conditions/conditions",
+            "page/forecast/forecast"
           ]
         },
         "app-side": {

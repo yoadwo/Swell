@@ -72,20 +72,62 @@ export const MOCK_FORECAST_LOW = {
   updatedAt: Math.floor(Date.now() / 1000),
 };
 
-/**
- * Get mock forecast based on score level for testing
- * @param {string} level - 'high', 'medium', or 'low'
- * @returns {Object} - Mock forecast payload
- */
+export const MOCK_FORECAST_DAILY = [
+  {
+    day: "Mon",
+    waveHeightMin: 1.2,
+    waveHeightMax: 1.8,
+    period: 12,
+    windSpeed: 10,
+    windDirection: 90,
+    score: 8,
+  },
+  {
+    day: "Tue",
+    waveHeightMin: 1.0,
+    waveHeightMax: 1.5,
+    period: 10,
+    windSpeed: 15,
+    windDirection: 100,
+    score: 6,
+  },
+  {
+    day: "Wed",
+    waveHeightMin: 0.8,
+    waveHeightMax: 1.2,
+    period: 8,
+    windSpeed: 20,
+    windDirection: 270,
+    score: 4,
+  },
+  {
+    day: "Thu",
+    waveHeightMin: 1.5,
+    waveHeightMax: 2.2,
+    period: 14,
+    windSpeed: 8,
+    windDirection: 45,
+    score: 9,
+  },
+];
+
 export function getMockForecast(level) {
+  let current;
   switch (level) {
     case 'high':
-      return { ...MOCK_FORECAST_HIGH };
+      current = { ...MOCK_FORECAST_HIGH };
+      break;
     case 'medium':
-      return { ...MOCK_FORECAST_MEDIUM };
+      current = { ...MOCK_FORECAST_MEDIUM };
+      break;
     case 'low':
-      return { ...MOCK_FORECAST_LOW };
+      current = { ...MOCK_FORECAST_LOW };
+      break;
     default:
-      return { ...MOCK_FORECAST_HIGH };
+      current = { ...MOCK_FORECAST_HIGH };
   }
+  return {
+    ...current,
+    forecast: MOCK_FORECAST_DAILY,
+  };
 }

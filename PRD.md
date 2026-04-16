@@ -231,12 +231,11 @@ The Device App contains the following swipeable pages:
 - Per day shows:
   - Day name (e.g., "Mon", "Tue")
   - Wave height range (e.g., "1.2–1.8m")
-  - Period (e.g., "12s")
-  - Wind (speed + direction)
+  - Weather icon (sunny, cloudy, etc). This may be considered optional if no single field in the API returns it.
   - Composite score (color-coded)
 
 **Behavior:**
-- Horizontal scroll or swipe between days
+- Horizontal scroll (if components exceed screen height)
 - Data from single API call (multi-day forecast)
 
 ---
