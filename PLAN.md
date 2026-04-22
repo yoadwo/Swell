@@ -318,34 +318,49 @@ See **PRD 4.2 -> Page 3: Weather Page** (FR-4).
 
 ---
 
-## File Structure (Target)
+## File Structure (Current)
 
 ```
-swell/
+swell/src/
 ├── app.js
 ├── app.json
 ├── package.json
 ├── assets/
 ├── page/
-│   ├── index.js              # Main page (Swell Index)
-│   ├── index.r.layout.js     # Round layout
-│   ├── index.s.layout.js     # Square layout
-│   ├── conditions.js         # Conditions page
-│   ├── weather.js            # Weather page
-│   ├── forecast.js           # Forecast page
-│   └── help.js               # Help page
+│   ├── index/
+│   │   ├── index.js              # Main page (Swell Index)
+│   │   ├── index.r.layout.js    # Round layout
+│   │   └── index.s.layout.js     # Square layout
+│   ├── conditions/
+│   │   ├── conditions.js        # Conditions page
+│   │   ├── conditions.r.layout.js # Round layout
+│   │   └── conditions.s.layout.js # Square layout
+│   ├── forecast/
+│   │   ├── forecast.js         # Forecast page
+│   │   ├── forecast.r.layout.js # Round layout
+│   │   └── forecast.s.layout.js # Square layout
+│   └── help/
+│       ├── help.js             # Help page
+│       ├── help.r.layout.js    # Round layout
+│       └── help.s.layout.js   # Square layout
 ├── app-side/
-│   ├── index.js              # Side Service
-│   └── handlers.js           # Forecast logic
+│   ├── index.js                # Side Service
+│   └── handlers.js            # Forecast logic
 ├── setting/
-│   ├── index.js              # Settings App
+│   ├── index.js                # Settings App
 │   └── beaches.js            # Beach list
 ├── utils/
-│   ├── device-storage.js     # Forecast cache (watch @zos/storage)
-│   ├── phone-storage.js      # Beach selection (phone settingsStorage)
+│   ├── config/
+│   │   ├── constants.js        # App constants
+│   │   └── device.js         # Device config
+│   ├── device-storage.js      # Forecast cache (watch @zos/storage)
+│   ├── phone-storage.js       # Beach selection (phone settingsStorage)
 │   ├── score.js              # Score calculation
-│   ├── http.js               # HTTP client (real + mock)
-│   └── mock-data.js          # Mock forecast data
+│   ├── http.js              # HTTP client (real + mock)
+│   ├── mock-data.js         # Mock forecast data
+│   └── gestures.js          # Swipe gesture handling
+├── page/
+│   └── ui-helpers.js        # UI formatting helpers
 └── i18n/
     └── en-US.po
 ```

@@ -336,11 +336,14 @@ The Swell Index score (0–10) is calculated from three equally-weighted factors
 
 1. **Swell Height Score (0–3):** Based on rideable swell size
    - Ideal range 0.9–1.3m = score 3
-   - Smaller or slightly larger = score 2 or 1
-   - Extreme sizes = score 0
+   - Slightly Smaller or slightly higher 0.7m-0.9m or 1.3m-1.5m = score 2 
+   or 1
+   - Low waves or too high <0.7m or >1.5m = score 1
 
 2. **Swell Period Score (0–3):** Based on swell organization
    - Longer period (10+ seconds) = score 3 (clean, organized waves)
+   - Long period (8 to 10 seconds) = score 2
+   - Short period (5 to 8 seconds) = score 1
    - Shorter period (<7 seconds) = score 0 (choppy, disorganized)
 
 3. **Wind Impact Score (0–3):** Combines wind direction and wind wave height (chop)

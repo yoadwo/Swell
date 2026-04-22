@@ -1,31 +1,12 @@
 /**
  * Swell Index Score Calculation and Display
  * 
- * Score Calculation:
- * Combines swell height and period with wind direction and chop into a 0-10 composite score.
- * See PRD § 6 FR-6 for detailed scoring algorithm and thresholds.
- * 
- * Data Architecture:
- * The forecast payload includes both SCORING DATA and REFERENCE DATA:
- * - SCORING DATA (used in algorithm): swell height, swell period, wind direction, wind wave height
- * - REFERENCE DATA (stored for display on other pages): wind speed
- * 
- * Wind speed is measured (km/h) from the Weather API but is NOT used in the Swell Index calculation.
- * Instead, the Swell Index uses wind wave height (chop) as the professional measure of wind impact.
- * Wind speed is available for reference/benchmarking on the Conditions Page and other displays,
- * but the scoring algorithm prioritizes the more actionable metric (chop) over raw wind speed.
- * 
- * Traffic Light Display:
- * Score ranges (0-10):
- * - 7-10: Green (Go Crazy) - Excellent conditions
- * - 4-6: Yellow (Have Fun) - Good conditions
- * - 0-3: Red (Better Get Coffee) - Poor conditions
  */
 
 /**
  * Calculate Swell Index score from forecast conditions
  * Combines swell height and period with wind direction and chop into a 0-10 composite score.
- * See PRD § 6 FR-6 for detailed scoring algorithm and thresholds.
+ * See PRD 6 FR-6 for detailed scoring algorithm and thresholds.
  * 
  * NOTE: Wind speed is available in forecastData.current.wind.speed but is NOT used in scoring.
  * Instead, wind wave height (chop) is used as the professional wind impact measure.
@@ -72,10 +53,10 @@ export function calculateScore(forecastData) {
   // Swell height (meters)
   if (swellHeight >= 0.9 && swellHeight <= 1.3) {
     swellHeightScore = 3; // Great (90cm-130cm)
-  } else if (swellHeight >= 0.7 && swellHeight < 0.9) {
-    swellHeightScore = 2; // OK (70cm-90cm)
-  } else if (swellHeight < 0.7 || swellHeight > 1.3) {
-    swellHeightScore = 1; // Low (too small or too large)
+  } else if ((swellHeight >= 0.7 && swellHeight < 0.9) || (swellHeight > 1.3 && swellHeight <= 1.5)) {
+    swellHeightScore = 2; // Good (a bit too low 70cm-90cm or a bit too high 130cm-150cm)
+  } else if ((swellHeight < 0.7 || swellHeight > 1.5 )) {
+    swellHeightScore = 1;
   }
 
   // Swell period (seconds)
@@ -83,7 +64,7 @@ export function calculateScore(forecastData) {
     swellPeriodScore = 3; // Great (10s+)
   } else if (swellPeriod >= 8) {
     swellPeriodScore = 2; // Good (8-10s)
-  } else if (swellPeriod >= 7) {
+  } else if (swellPeriod >= 5) {
     swellPeriodScore = 1; // Low (7s)
   } else {
     swellPeriodScore = 0; // Very low (<7s)
@@ -152,6 +133,10 @@ export function getWindScore(windDirection, seaDirection = 270) {
 
 /**
  * Get traffic light state based on score
+ * Score ranges (0-10):
+ * - 7-10: Green (Go Crazy) - Excellent conditions
+ * - 4-6: Yellow (Have Fun) - Good conditions
+ * - 0-3: Red (Better Get Coffee) - Poor conditions
  * 
  * @param {number} score - Raw score (0-10)
  * @returns {Object} - {color, icon, text, description}
