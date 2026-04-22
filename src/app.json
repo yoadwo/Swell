@@ -30,7 +30,8 @@
           "pages": [
             "page/index/index",
             "page/conditions/conditions",
-            "page/forecast/forecast"
+            "page/forecast/forecast",
+            "page/help/help"
           ]
         },
         "app-side": {

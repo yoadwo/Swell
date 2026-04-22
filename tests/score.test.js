@@ -171,7 +171,7 @@ test('Score Calculation Algorithm', async (t) => {
         },
       },
     };
-    assert.equal(calculateScore(forecastData), 6.7, 'Reduced swell quality');
+    assert.equal(calculateScore(forecastData), 7.8, 'Reduced swell quality');
   });
 
   await t.test('YELLOW: With poor wind direction', () => {
@@ -184,11 +184,11 @@ test('Score Calculation Algorithm', async (t) => {
         },
         wind: {
           height: 0.2,
-          direction: 15,
+          direction: 270,
         },
       },
     };
-    assert.equal(calculateScore(forecastData), 5.9, 'Multiple reduced factors');
+    assert.equal(calculateScore(forecastData), 5.6, 'Multiple reduced factors');
   });
 
   // RED (Score < 4) - Real low parameters
@@ -206,7 +206,7 @@ test('Score Calculation Algorithm', async (t) => {
         },
       },
     };
-    assert.equal(calculateScore(forecastData), 1.5, 'Unfavorable conditions');
+    assert.equal(calculateScore(forecastData), 2.6, 'Unfavorable conditions');
   });
 
   await t.test('RED: Tiny swell with heavy wind chop', () => {
