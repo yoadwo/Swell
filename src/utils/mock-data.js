@@ -109,6 +109,15 @@ export const MOCK_FORECAST_DAILY = [
     windDirection: 45,
     score: 9,
   },
+  {
+    day: "Fri",
+    waveHeightMin: 1.0,
+    waveHeightMax: 1.6,
+    period: 11,
+    windSpeed: 12,
+    windDirection: 180,
+    score: 7,
+  },
 ];
 
 export function getMockForecast(level) {

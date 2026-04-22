@@ -41,13 +41,12 @@ export function createHttpClient() {
       console.log(`Fetching forecast for lat=${lat}, lon=${lon}`);
       const marineApiUrl = "https://marine-api.open-meteo.com/v1/marine";
       const forecastApiUrl = "https://api.open-meteo.com/v1/forecast";
-      const [marineResponse, weatherResponse, marineDailyResponse] = await Promise.all([
+      const [marineResponse, weatherResponse] = await Promise.all([
         this._fetchMarineAPI(marineApiUrl, lat, lon),
         this._fetchWeatherAPI(forecastApiUrl, lat, lon),
-        this._fetchMarineDailyAPI(marineApiUrl, lat, lon),
       ]);
 
-      return this._normalizeResponse(marineResponse, weatherResponse, marineDailyResponse);
+      return this._normalizeResponse(marineResponse, weatherResponse);
     },
 
     /**
@@ -68,6 +67,13 @@ export function createHttpClient() {
         'swell_wave_direction',
         'wind_wave_height',
         'wind_wave_direction'
+      ].join(','));
+      url.searchParams.append('daily', [
+        'swell_wave_height_max',
+        'swell_wave_period_max',
+        'swell_wave_direction_dominant',
+        'wind_wave_height_max',
+        'wind_wave_direction_dominant',
       ].join(','));
       url.searchParams.append('timezone', 'auto');
 
@@ -105,40 +111,18 @@ export function createHttpClient() {
       return response.json();
     },
 
-    async _fetchMarineDailyAPI(apiUrl, lat, lon) {
-      const url = new URL(apiUrl);
-      console.debug('marine daily API: ', apiUrl);
-      url.searchParams.append('latitude', lat);
-      url.searchParams.append('longitude', lon);
-      url.searchParams.append('daily', [
-        'swell_wave_height_max',
-        'swell_wave_period_max',
-        'swell_wave_direction_dominant',
-        'wind_wave_height_max',
-        'wind_wave_direction_dominant',
-      ].join(','));
-      url.searchParams.append('timezone', 'auto');
-
-      const response = await fetch(url.toString());
-      if (!response.ok) {
-        throw new Error(`Marine Daily API error: ${response.status} ${response.statusText}`);
-      }
-      return response.json();
-    },
-
     /**
      * Normalize and merge Marine + Weather API responses into standard payload shape
      * 
      * @private
      */
-    _normalizeResponse(marineData, weatherData, marineDailyData) {
+    _normalizeResponse(marineData, weatherData) {
       const marineCurrent = marineData.current || {};
       const weatherCurrent = weatherData.current || {};
       const weatherDaily = weatherData.daily || {};
-      const marineDaily = marineDailyData.daily || {};
+      const marineDaily = marineData.daily || {};
       console.debug("marine API response: ", marineData);
       console.debug("weather API response: ", weatherData);
-      console.debug("marine daily API response: ", marineDailyData);
 
       const waterTemp = 22;
       const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];

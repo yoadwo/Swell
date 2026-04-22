@@ -3,10 +3,7 @@ import { onGesture, GESTURE_LEFT, GESTURE_RIGHT } from "@zos/interaction";
 
 const PAGE_URLS = ["page/index/index", "page/conditions/conditions", "page/forecast/forecast"];
 
-export function setupGestures(currentPageIndex, opts = {}) {
-  const { skipPageNav = false } = opts;
-  if (skipPageNav) return;
-
+export function setupGestures(currentPageIndex) {
   const totalPages = PAGE_URLS.length;
   const isFirst = currentPageIndex === 0;
   const isLast = currentPageIndex === totalPages - 1;

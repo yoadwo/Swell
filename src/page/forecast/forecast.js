@@ -3,123 +3,85 @@ import { BasePage } from "@zeppos/zml/base-page";
 import { loadForecast } from "../../utils/device-storage";
 import { FORECAST_PAGE_LAYOUT } from "./forecast.r.layout";
 import { log as Logger } from "@zos/utils";
-import { setupGestures } from "../../utils/gestures";
 import { setScrollMode, SCROLL_MODE_FREE } from "@zos/page";
-import { onGesture, GESTURE_LEFT, GESTURE_RIGHT } from "@zos/interaction";
 import { localStorage } from "@zos/storage";
 import { formatDirection } from "../ui-helpers";
+import { getTrafficLightState } from "../../utils/score";
+import { setupGestures } from "../../utils/gestures";
 
 const logger = Logger.getLogger("page.forecast");
-
-const COLORS = {
-  GREEN: 0x00ff00,
-  YELLOW: 0xffff00,
-  RED: 0xff0000,
-};
-
-function getScoreColor(score) {
-  if (score >= 7) return COLORS.GREEN;
-  if (score >= 4) return COLORS.YELLOW;
-  return COLORS.RED;
-}
 
 Page(
   BasePage({
     build() {
       logger.debug("Building forecast page");
-      setupGestures(2, { skipPageNav: true });
 
-      setScrollMode({ mode: SCROLL_MODE_FREE });
-
-      this.dayWidget = hmUI.createWidget(hmUI.widget.TEXT, {
-        ...FORECAST_PAGE_LAYOUT.DAY,
-      });
-
-      this.waveWidget = hmUI.createWidget(hmUI.widget.TEXT, {
-        ...FORECAST_PAGE_LAYOUT.WAVE,
-      });
-
-      this.periodWidget = hmUI.createWidget(hmUI.widget.TEXT, {
-        ...FORECAST_PAGE_LAYOUT.PERIOD,
-      });
-
-      this.windWidget = hmUI.createWidget(hmUI.widget.TEXT, {
-        ...FORECAST_PAGE_LAYOUT.WIND,
-      });
-
-      this.scoreWidget = hmUI.createWidget(hmUI.widget.TEXT, {
-        ...FORECAST_PAGE_LAYOUT.SCORE,
-      });
-
-      this.navWidget = hmUI.createWidget(hmUI.widget.TEXT, {
-        ...FORECAST_PAGE_LAYOUT.NAV,
+      setupGestures(2);
+      setScrollMode({
+        mode: SCROLL_MODE_FREE,
+        options: {
+          modeParams: {
+            bounce: false,
+          },
+        },
       });
 
       let cached = null;
       try {
         cached = loadForecast(localStorage);
-        logger.info("Loaded forecast from device storage:", cached.beach);
+        logger.info("Loaded forecast:", cached?.beach);
       } catch (e) {
         logger.warn(`Could not load forecast: ${e.message}`);
       }
 
-      if (cached && cached.forecast && cached.forecast.length > 0) {
-        this.currentIndex = 0;
-        this.days = cached.forecast;
-        this.renderDay(0);
-      } else {
-        this.renderNoData();
-        this.days = [];
+      const days = cached?.forecast || [];
+      const dayCount = Math.min(days.length, 5);
+
+      for (let i = 0; i < dayCount; i++) {
+        const day = days[i];
+        const state = getTrafficLightState(day.score);
+        const color = state.color;
+        const rowY = 50 + i * 90;
+
+        hmUI.createWidget(hmUI.widget.TEXT, {
+          ...FORECAST_PAGE_LAYOUT.ROW_DAY,
+          y: rowY,
+          text: day.day,
+        });
+
+        hmUI.createWidget(hmUI.widget.TEXT, {
+          ...FORECAST_PAGE_LAYOUT.ROW_WAVE,
+          y: rowY + 30,
+          text: `🌊 ${day.waveHeightMin.toFixed(1)}–${day.waveHeightMax.toFixed(1)}m`,
+        });
+
+        // hmUI.createWidget(hmUI.widget.TEXT, {
+        //   ...FORECAST_PAGE_LAYOUT.ROW_PERIOD,
+        //   y: rowY + 30,
+        //   text: `⏱️ ${day.period}s`,
+        // });
+
+        hmUI.createWidget(hmUI.widget.TEXT, {
+          ...FORECAST_PAGE_LAYOUT.ROW_WIND,
+          y: rowY + 60,
+          text: `💨 ${day.windSpeed} km/h ${formatDirection(day.windDirection, true)}`,
+        });
+
+        hmUI.createWidget(hmUI.widget.TEXT, {
+          ...FORECAST_PAGE_LAYOUT.ROW_SCORE,
+          y: rowY + 60,
+          // text: `Score: ${day.score}`,
+          text: day.score,
+          color: color,
+        });
       }
 
-      onGesture({
-        callback: (event) => {
-          if (!this.days || this.days.length === 0) return false;
-          if (event === GESTURE_LEFT) {
-            this.currentIndex = (this.currentIndex + 1) % this.days.length;
-            this.renderDay(this.currentIndex);
-            return true;
-          }
-          if (event === GESTURE_RIGHT) {
-            this.currentIndex = (this.currentIndex - 1 + this.days.length) % this.days.length;
-            this.renderDay(this.currentIndex);
-            return true;
-          }
-          return false;
-        },
-      });
-    },
-
-    renderDay(index) {
-      if (index < 0 || index >= this.days.length) return;
-      const day = this.days[index];
-      const color = getScoreColor(day.score);
-
-      this.dayWidget.setProperty(hmUI.prop.TEXT, day.day);
-      this.waveWidget.setProperty(
-        hmUI.prop.TEXT,
-        `🌊 ${day.waveHeightMin.toFixed(1)}–${day.waveHeightMax.toFixed(1)}m`
-      );
-      this.periodWidget.setProperty(hmUI.prop.TEXT, `⏱️ ${day.period}s`);
-      this.windWidget.setProperty(
-        hmUI.prop.TEXT,
-        `💨 ${day.windSpeed} km/h ${formatDirection(day.windDirection, true)}`
-      );
-      this.scoreWidget.setProperty(hmUI.prop.TEXT, `Score: ${day.score}`);
-      this.scoreWidget.setProperty(hmUI.prop.COLOR, color);
-
-      const navText = `${index + 1}/${this.days.length}  ← →`;
-      this.navWidget.setProperty(hmUI.prop.TEXT, navText);
-    },
-
-    renderNoData() {
-      this.dayWidget.setProperty(hmUI.prop.TEXT, "—");
-      this.waveWidget.setProperty(hmUI.prop.TEXT, "🌊 —");
-      this.periodWidget.setProperty(hmUI.prop.TEXT, "⏱️ —");
-      this.windWidget.setProperty(hmUI.prop.TEXT, "💨 —");
-      this.scoreWidget.setProperty(hmUI.prop.TEXT, "Score: —");
-      this.scoreWidget.setProperty(hmUI.prop.COLOR, 0xffffff);
-      this.navWidget.setProperty(hmUI.prop.TEXT, "No forecast");
+      if (dayCount === 0) {
+        hmUI.createWidget(hmUI.widget.TEXT, {
+          ...FORECAST_PAGE_LAYOUT.NO_DATA,
+          text: "No forecast data",
+        });
+      }
     },
   })
 );

@@ -190,7 +190,7 @@ const selectedBeach = JSON.parse(settingsStorage.getItem('selectedBeach'));
 > **Location:** `app-side/handlers.js` - `calculateScore()` function
 > **Design:** Computes on Side Service (phone) for processing power and easy adjustment without watch updates
 > **Algorithm:** Combines wind direction/speed, wave height, and wave period into a 0-10 score
-> **Details:** See **PRD § 4.2 § Page 5: Help Page** (FR-6) for exact scoring formula and thresholds
+> **Details:** See **PRD 4.2 -> Page 5: Help Page** (FR-6) for exact scoring formula and thresholds
 
 
 **3.5 Send to watch via BLE**
@@ -245,7 +245,7 @@ res(null, payload);
 
 **5.2 Display parameters**
 
-See **PRD § 4.2 § Page 2: Conditions Page** (FR-3) for full parameter list and which are scored vs reference-only.
+See **PRD 4.2 -> Page 2: Conditions Page** (FR-3) for full parameter list and which are scored vs reference-only.
 
 ---
 
@@ -259,7 +259,7 @@ See **PRD § 4.2 § Page 2: Conditions Page** (FR-3) for full parameter list and
 
 **6.2 Display parameters**
 
-See **PRD § 4.2 § Page 3: Weather Page** (FR-4).
+See **PRD 4.2 -> Page 3: Weather Page** (FR-4).
 
 ---
 
@@ -274,7 +274,22 @@ See **PRD § 4.2 § Page 3: Weather Page** (FR-4).
 **7.2 Display per day**
 
 - Day name, wave height range, period, wind, score (color-coded).
-- Horizontal scroll between days.
+- Vertical swipe using SCROLL_MODE_SWIPER with height:480, count:4.
+- Uses getTrafficLightState() from utils/score.js for color coding.
+
+**7.3 Daily forecast caching (TBD)**
+
+- Currently: daily forecast fetched with same API call as current.
+- Future: consider updating daily forecast only once per day (vs current conditions every fetch).
+- See Phase 7.3 in PLAN.md for details.
+
+---
+
+### Phase 7.3: Forecast Caching Strategy (Deferred)
+
+- **Current:** Daily forecast fetched with each request (same as current conditions)
+- **Future consideration:** Update daily forecast only once per 24h, but current conditions hourly
+- This would require separate cache timestamps for current vs daily
 
 ---
 
