@@ -318,6 +318,49 @@ See **PRD 4.2 -> Page 3: Weather Page** (FR-4).
 
 ---
 
+### Phase 10: Review
+
+**Goal:** Review current app state
+
+- This is the "mid-phase". Up until now we've created a working Minimum Viable Product. We're about to refactor all the working parts in the next phases.
+- Let's go over what we've implemented until this point and make sure we're good to move to next phases.
+- Review PRD.md for pages, functional and non functional requirements.
+- Review PLAN.md
+- Compare knowledge from PRD and PLAN to current code; did we miss anything? create a report of missing issues.
+
+### Phase 11: Refactor Index page (FR-8)
+
+**Goal:** Index page will contain more helpful data
+
+- Last updated text
+- Is online / paired with phone indication
+- Force update (let's call it "refresh"). Must be paired to get updated.
+
+---
+
+### Phase 12: Refactor Settings App (FR-10)
+
+**Goal:** Settings app will display more beaches and allow search
+
+- If possible use internet search
+- If not, should broaden the hard-coded list
+  - Keep the tel aviv beaches.
+  - Add sri lanka beaches (two weligama and arugam bay). search internet for their names and coordinates. Take the famous ones.
+  - Add california beaches (2 malibu, 2 santa barbara, santa cruz). Take the famous ones.
+
+---
+
+### Phase 13: Plot Wave Height Graph (FR-11)
+
+**Goal:** Display to the user the weekly wave height graph
+
+- Based on the already taken weekly forecast
+- On a separate page, after the weekly forecast text
+- Black background and blue colors, X axis is days and Y axis is height
+- In order to be readable, it is possible it will exceed screen width. 
+  we may need to implement horizontal scroll (haven't implemented it yet anywhere else.)
+---
+
 ## File Structure (Current)
 
 ```

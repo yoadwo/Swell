@@ -240,7 +240,18 @@ The Device App contains the following swipeable pages:
 
 ---
 
-#### Page 5: Help Page
+#### Page 5: Forecast Graph Page
+
+**Purpose:** Plot a graph showing the wave height in the following days (according to weekly forecast)
+
+**UI Elements:**
+- Black background with a blue colored graph. The X axis is the day, Y axis is wave height in cm.
+
+**Behavior:**
+
+---
+
+#### Page 6: Help Page
 
 **Purpose:** Explain how the "Swell Index" (composite score) is calculated.
 
@@ -415,7 +426,8 @@ Both APIs are called in parallel and responses are normalized into a single payl
 ### FR-8: Offline Cache
 
 - Device App stores last received forecast payload in persistent storage.
-- On launch without phone connection: display cached data with "offline" indicator.
+- Index page should display a "last updated" with the date; open clicking on yet the app will ask the user if they wish to force update the forecast, but also reminding them that requires the phone nearby. Consult with Zepp Design Specifications on how to design the dialog.
+- Optional: On launch without phone connection: display cached data with "offline" indicator. Need to plan how the icon will look like. 
 - Workout Extension reads same cached forecast (no independent fetch).
 
 ### FR-9: Workout Extension (Surf Mode)
@@ -423,6 +435,15 @@ Both APIs are called in parallel and responses are normalized into a single payl
 - Register in `app.json` under `data-widget` for Surf sport type (API_LEVEL 3.6+).
 - Display compact cached forecast view (wave height, period, score).
 - Read-only; no user interaction required.
+
+### FR-10: 
+
+- Allow for more beaches to be selected in the settings app.
+- Preferred is to be able to search beaches world-wide, but that requires a fetch ability.
+- If not possible to search, prepare hard-coded list of beaches: the tel aviv beaches, sri lanka beaches (weligama and arugam bay), california beaches (malibu, santa barbara, santa cruz).
+
+### FR-11:
+- Plot graph for the weekly forecast
 
 ---
 
