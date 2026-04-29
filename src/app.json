@@ -18,8 +18,8 @@
   ],
   "runtime": {
     "apiVersion": {
-      "compatible": "4.0",
-      "target": "4.0",
+      "compatible": "4.2",
+      "target": "4.2",
       "minVersion": "4.0"
     }
   },
