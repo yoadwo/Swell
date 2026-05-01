@@ -1,7 +1,11 @@
 import * as hmUI from "@zos/ui";
 import { BasePage } from "@zeppos/zml/base-page";
 import { loadForecast } from "../../utils/device-storage";
-import { CONDITIONS_PAGE_LAYOUT } from "./conditions.r.layout";
+import {
+  CONDITIONS_PAGE_LAYOUT,
+  GRID,
+  CELL
+} from "zosLoader:./conditions.[pf].layout.js";
 import { log as Logger } from "@zos/utils";
 import { setupGestures } from "../../utils/gestures";
 import { setScrollMode, SCROLL_MODE_FREE } from "@zos/page";
@@ -9,6 +13,29 @@ import { localStorage } from "@zos/storage";
 import { formatDirection } from "../ui-helpers";
 
 const logger = Logger.getLogger("page.conditions");
+
+function createGridCells() {
+  const { COLS, ROWS } = GRID;
+  const { WIDTH, HEIGHT, BORDER_WIDTH, BORDER_COLOR, BORDER_ALPHA } = CELL;
+
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = 0; col < COLS; col++) {
+      const x = col * WIDTH;
+      const y = row * HEIGHT;
+
+      hmUI.createWidget(hmUI.widget.STROKE_RECT, {
+        x,
+        y,
+        w: WIDTH,
+        h: HEIGHT,
+        radius: 0,
+        line_width: BORDER_WIDTH,
+        color: BORDER_COLOR,
+        alpha: BORDER_ALPHA
+      });
+    }
+  }
+}
 
 let waveWidget, windWidget, waterTempWidget, airTempWidget, uvWidget, sunriseSunsetWidget;
 
@@ -19,6 +46,8 @@ Page(
       setupGestures(1);
 
       setScrollMode({ mode: SCROLL_MODE_FREE });
+
+      createGridCells();
 
       waveWidget = hmUI.createWidget(hmUI.widget.TEXT, {
         ...CONDITIONS_PAGE_LAYOUT.WAVE,
@@ -65,12 +94,12 @@ Page(
 
       waveWidget.setProperty(
         hmUI.prop.TEXT,
-        `🌊\n${c.swell.height.toFixed(1)}m\n${c.swell.period}s  ${formatDirection(c.swell.direction)}`
+        `🌊\n${c.swell.height.toFixed(1)}m  ${c.swell.period}s ${formatDirection(c.swell.direction)}`
       );
 
       windWidget.setProperty(
         hmUI.prop.TEXT,
-        `💨\n${c.wind.speed} km/h\n${formatDirection(c.wind.direction, true)}`
+        `💨\n${c.wind.speed} km/h ${formatDirection(c.wind.direction, true)}`
       );
 
       waterTempWidget.setProperty(
@@ -90,14 +119,14 @@ Page(
 
       sunriseSunsetWidget.setProperty(
         hmUI.prop.TEXT,
-        `🌅 ${data.sunrise}\n🌇 ${data.sunset}`
+        `🌅 ${data.sunrise} \n🌇 ${data.sunset}`
       );
     },
 
     renderNoData() {
       logger.debug("Rendering no data");
-      waveWidget.setProperty(hmUI.prop.TEXT, "🌊\n-\n-\n-");
-      windWidget.setProperty(hmUI.prop.TEXT, "💨\n-\n-");
+      waveWidget.setProperty(hmUI.prop.TEXT, "🌊\n-");
+      windWidget.setProperty(hmUI.prop.TEXT, "💨\n-");
       waterTempWidget.setProperty(hmUI.prop.TEXT, "🌡️\n-");
       airTempWidget.setProperty(hmUI.prop.TEXT, "🌤️\n-");
       uvWidget.setProperty(hmUI.prop.TEXT, "☀️\n-");
