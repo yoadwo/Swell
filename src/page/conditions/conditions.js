@@ -1,11 +1,7 @@
 import * as hmUI from "@zos/ui";
 import { BasePage } from "@zeppos/zml/base-page";
 import { loadForecast } from "../../utils/device-storage";
-import {
-  CONDITIONS_PAGE_LAYOUT,
-  GRID,
-  CELL
-} from "zosLoader:./conditions.[pf].layout.js";
+import { CONDITIONS_PAGE_LAYOUT } from "zosLoader:./conditions.[pf].layout.js";
 import { log as Logger } from "@zos/utils";
 import { setupGestures } from "../../utils/gestures";
 import { setScrollMode, SCROLL_MODE_FREE } from "@zos/page";
@@ -13,29 +9,6 @@ import { localStorage } from "@zos/storage";
 import { formatDirection } from "../ui-helpers";
 
 const logger = Logger.getLogger("page.conditions");
-
-function createGridCells() {
-  const { COLS, ROWS } = GRID;
-  const { WIDTH, HEIGHT, BORDER_WIDTH, BORDER_COLOR, BORDER_ALPHA } = CELL;
-
-  for (let row = 0; row < ROWS; row++) {
-    for (let col = 0; col < COLS; col++) {
-      const x = col * WIDTH;
-      const y = row * HEIGHT;
-
-      hmUI.createWidget(hmUI.widget.STROKE_RECT, {
-        x,
-        y,
-        w: WIDTH,
-        h: HEIGHT,
-        radius: 0,
-        line_width: BORDER_WIDTH,
-        color: BORDER_COLOR,
-        alpha: BORDER_ALPHA
-      });
-    }
-  }
-}
 
 let waveWidget, windWidget, waterTempWidget, airTempWidget, uvWidget, sunriseSunsetWidget;
 
@@ -47,30 +20,53 @@ Page(
 
       setScrollMode({ mode: SCROLL_MODE_FREE });
 
-      createGridCells();
-
-      waveWidget = hmUI.createWidget(hmUI.widget.TEXT, {
-        ...CONDITIONS_PAGE_LAYOUT.WAVE,
+      const root = hmUI.createWidget(hmUI.widget.VIRTUAL_CONTAINER, {
+        ...CONDITIONS_PAGE_LAYOUT.root,
       });
 
-      windWidget = hmUI.createWidget(hmUI.widget.TEXT, {
-        ...CONDITIONS_PAGE_LAYOUT.WIND,
+      const row1 = hmUI.createWidget(hmUI.widget.VIRTUAL_CONTAINER, {
+        parent: root,
+        ...CONDITIONS_PAGE_LAYOUT.rowContainer,
+      });
+
+      const row2 = hmUI.createWidget(hmUI.widget.VIRTUAL_CONTAINER, {
+        parent: root,
+        ...CONDITIONS_PAGE_LAYOUT.rowContainer,
+      });
+
+      const row3 = hmUI.createWidget(hmUI.widget.VIRTUAL_CONTAINER, {
+        parent: root,
+        ...CONDITIONS_PAGE_LAYOUT.rowContainer,
       });
 
       waterTempWidget = hmUI.createWidget(hmUI.widget.TEXT, {
         ...CONDITIONS_PAGE_LAYOUT.WATER_TEMP,
+        parent: row1,
       });
 
       airTempWidget = hmUI.createWidget(hmUI.widget.TEXT, {
         ...CONDITIONS_PAGE_LAYOUT.AIR_TEMP,
+        parent: row1,
+      });
+
+      waveWidget = hmUI.createWidget(hmUI.widget.TEXT, {
+        ...CONDITIONS_PAGE_LAYOUT.WAVE,
+        parent: row2,
+      });
+
+      windWidget = hmUI.createWidget(hmUI.widget.TEXT, {
+        ...CONDITIONS_PAGE_LAYOUT.WIND,
+        parent: row2,
       });
 
       uvWidget = hmUI.createWidget(hmUI.widget.TEXT, {
         ...CONDITIONS_PAGE_LAYOUT.UV,
+        parent: row3,
       });
 
       sunriseSunsetWidget = hmUI.createWidget(hmUI.widget.TEXT, {
         ...CONDITIONS_PAGE_LAYOUT.SUNRISE_SUNSET,
+        parent: row3,
       });
 
       let cached = null;
@@ -94,12 +90,12 @@ Page(
 
       waveWidget.setProperty(
         hmUI.prop.TEXT,
-        `🌊\n${c.swell.height.toFixed(1)}m  ${c.swell.period}s ${formatDirection(c.swell.direction)}`
+        `🌊\n${c.swell.height.toFixed(1)}m  ${c.swell.period}s\n${formatDirection(c.swell.direction)}`
       );
 
       windWidget.setProperty(
         hmUI.prop.TEXT,
-        `💨\n${c.wind.speed} km/h ${formatDirection(c.wind.direction, true)}`
+        `💨\n${c.wind.speed} km/h\n${formatDirection(c.wind.direction, true)}`
       );
 
       waterTempWidget.setProperty(

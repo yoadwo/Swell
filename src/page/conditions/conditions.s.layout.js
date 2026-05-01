@@ -4,86 +4,100 @@ import { px } from "@zos/utils";
 
 const { width: DEVICE_WIDTH, height: DEVICE_HEIGHT } = getDeviceInfo();
 
-export const GRID = {
-  COLS: 2,
-  ROWS: 3,
-};
-
-export const CELL = {
-  WIDTH: Math.floor(DEVICE_WIDTH / GRID.COLS),
-  HEIGHT: Math.floor(DEVICE_HEIGHT / GRID.ROWS) + 8,
-  PADDING: 5,
-  BORDER_WIDTH: 2,
-  BORDER_COLOR: 0xFFA500,
-  BORDER_ALPHA: 100,
-};
-
-const TEXT_Y_BASE = CELL.PADDING + 15;
-const TEXT_Y_ROW_0 = TEXT_Y_BASE;
-const TEXT_Y_ROW_1 = CELL.PADDING + CELL.HEIGHT + 10;
-const TEXT_Y_ROW_2 = CELL.PADDING + 2 * CELL.HEIGHT + 15;
+const PADDING = 5;
+const ITEM_HEIGHT = Math.floor(DEVICE_HEIGHT / 3);
 
 export const CONDITIONS_PAGE_LAYOUT = {
-  // Left column: x at center of cell
-  WAVE: {
-    x: px(CELL.PADDING + CELL.WIDTH / 2),
-    y: px(TEXT_Y_ROW_1),
-    text_size: px(28),
-    color: 0xffffff,
-    align_h: hmUI.align.CENTER_H,
-    align_v: hmUI.align.TOP,
-    text_style: hmUI.text_style.WRAP,
+  root: {
+    layout: {
+      x: px(0),
+      y: px(0),
+      width: px(DEVICE_WIDTH),
+      height: px(DEVICE_HEIGHT),
+      display: "flex",
+      "flex-flow": "column",
+      "justify-content": "space-between",
+      "padding-top": px(PADDING),
+      "padding-left": px(PADDING),
+      "padding-right": px(PADDING),
+      "padding-bottom": px(PADDING),
+    },
   },
 
-  // Right column: x at 1/8 from left edge of right cell
-  WIND: {
-    x: px(CELL.PADDING + CELL.WIDTH + CELL.WIDTH / 8),
-    y: px(TEXT_Y_ROW_1),
-    text_size: px(28),
+  rowContainer: {
+    layout: {
+      width: "100%",
+      height: px(ITEM_HEIGHT),
+      display: "flex",
+      "flex-flow": "row",
+      "justify-content": "space-between",
+      "align-items": "center",
+    },
+  },
+
+  WAVE: {
+    text_size: px(24),
     color: 0xffffff,
     align_h: hmUI.align.CENTER_H,
-    align_v: hmUI.align.TOP,
-    text_style: hmUI.text_style.WRAP,
+    align_v: hmUI.align.CENTER_V,
+    layout: {
+      width: "48%",
+      height: "100%",
+    },
+  },
+
+  WIND: {
+    text_size: px(24),
+    color: 0xffffff,
+    align_h: hmUI.align.CENTER_H,
+    align_v: hmUI.align.CENTER_V,
+    layout: {
+      width: "48%",
+      height: "100%",
+    },
   },
 
   WATER_TEMP: {
-    x: px(CELL.PADDING + CELL.WIDTH / 2),
-    y: px(TEXT_Y_ROW_0),
     text_size: px(26),
     color: 0xffffff,
     align_h: hmUI.align.CENTER_H,
-    align_v: hmUI.align.TOP,
-    text_style: hmUI.text_style.WRAP,
+    align_v: hmUI.align.CENTER_V,
+    layout: {
+      width: "48%",
+      height: "100%",
+    },
   },
 
   AIR_TEMP: {
-    x: px(CELL.PADDING + CELL.WIDTH + CELL.WIDTH / 8),
-    y: px(TEXT_Y_ROW_0),
     text_size: px(26),
     color: 0xffffff,
     align_h: hmUI.align.CENTER_H,
-    align_v: hmUI.align.TOP,
-    text_style: hmUI.text_style.WRAP,
+    align_v: hmUI.align.CENTER_V,
+    layout: {
+      width: "48%",
+      height: "100%",
+    },
   },
 
   UV: {
-    x: px(CELL.PADDING + CELL.WIDTH / 2),
-    y: px(TEXT_Y_ROW_2),
     text_size: px(20),
     color: 0xffffff,
     align_h: hmUI.align.CENTER_H,
-    align_v: hmUI.align.TOP,
-    text_style: hmUI.text_style.WRAP,
+    align_v: hmUI.align.CENTER_V,
+    layout: {
+      width: "48%",
+      height: "100%",
+    },
   },
 
   SUNRISE_SUNSET: {
-    x: px(CELL.PADDING + CELL.WIDTH + CELL.WIDTH / 8),
-    y: px(TEXT_Y_ROW_2),
     text_size: px(20),
     color: 0xffffff,
     align_h: hmUI.align.CENTER_H,
-    align_v: hmUI.align.TOP,
-    text_style: hmUI.text_style.WRAP,
+    align_v: hmUI.align.CENTER_V,
+    layout: {
+      width: "48%",
+      height: "100%",
+    },
   },
-};
 };
