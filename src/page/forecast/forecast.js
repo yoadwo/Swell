@@ -1,7 +1,7 @@
 import * as hmUI from "@zos/ui";
 import { BasePage } from "@zeppos/zml/base-page";
 import { loadForecast } from "../../utils/device-storage";
-import { FORECAST_PAGE_LAYOUT } from "./forecast.r.layout";
+import { FORECAST_PAGE_LAYOUT } from "zosLoader:./forecast.page.[pf].layout.js";
 import { log as Logger } from "@zos/utils";
 import { setScrollMode, SCROLL_MODE_FREE } from "@zos/page";
 import { localStorage } from "@zos/storage";

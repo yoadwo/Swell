@@ -1,6 +1,6 @@
 import * as hmUI from "@zos/ui";
 import { BasePage } from "@zeppos/zml/base-page";
-import { HELP_PAGE_LAYOUT } from "./help.r.layout";
+import { HELP_PAGE_LAYOUT } from "zosLoader:./help.page.[pf].layout.js";
 import { log as Logger } from "@zos/utils";
 import { setScrollMode, SCROLL_MODE_FREE } from "@zos/page";
 import { setupGestures } from "../../utils/gestures";
