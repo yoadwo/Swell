@@ -2,7 +2,7 @@ import * as hmUI from "@zos/ui";
 import { BasePage } from "@zeppos/zml/base-page";
 import { getTrafficLightState } from "../../utils/score";
 import { loadForecast, saveForecast } from "../../utils/device-storage";
-import { MAIN_PAGE_LAYOUT } from "zosLoader:./index.page.[pf].layout.js";
+import { MAIN_PAGE_LAYOUT } from "zosLoader:./index.[pf].layout.js";
 import { log as Logger } from "@zos/utils";
 import { setupGestures } from "../../utils/gestures";
 import { localStorage } from "@zos/storage";
