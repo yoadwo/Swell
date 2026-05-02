@@ -11,7 +11,7 @@ const logger = Logger.getLogger("page.index");
 
 const CACHE_FRESHNESS_SECONDS = 3600;
 
-let beachNameWidget, scoreTextWidget, iconMessageWidget, staleWidget;
+let beachNameWidget, scoreTextWidget, messageWidget, refreshButton, statusWidget;
 
 Page(
   BasePage({
@@ -32,12 +32,20 @@ Page(
         ...MAIN_PAGE_LAYOUT.SCORE_TEXT,
       });
 
-      iconMessageWidget = hmUI.createWidget(hmUI.widget.TEXT, {
-        ...MAIN_PAGE_LAYOUT.ICON_MESSAGE,
+      messageWidget = hmUI.createWidget(hmUI.widget.TEXT, {
+        ...MAIN_PAGE_LAYOUT.MESSAGE,
       });
 
-      staleWidget = hmUI.createWidget(hmUI.widget.TEXT, {
-        ...MAIN_PAGE_LAYOUT.STALE,
+      refreshButton = hmUI.createWidget(hmUI.widget.TEXT, {
+        ...MAIN_PAGE_LAYOUT.REFRESH_BUTTON,
+      });
+      refreshButton.addEventListener(hmUI.event.CLICK_DOWN, () => {
+        logger.debug("Refresh button clicked");
+        this.handleRefresh();
+      });
+
+      statusWidget = hmUI.createWidget(hmUI.widget.TEXT, {
+        ...MAIN_PAGE_LAYOUT.STATUS,
       });
 
       let cached = null;
@@ -52,27 +60,32 @@ Page(
         logger.info("Rendering data from for beach: %s", cached.beach);
         this.renderForecast(cached);
       } else {
-        logger.info("Cache missing or stale, fetching new data");
-        this.renderLoading();
-        this.requestFreshData()
-          .then((data) => {
-            if (data) {
-              try {
-                logger.debug("saving forecast");
-                saveForecast(localStorage, data);
-              } catch (e) {
-                logger.warn(`Could not save forecast: ${e.message}`);
-              }
-              this.renderForecast(data);
-            } else {
-              this.renderNoBeachSelected();
-            }
-          })
-          .catch((err) => {
-            logger.error("Failed to fetch forecast:", err);
-            this.renderError();
-          });
+        this.fetchAndRender();
       }
+    },
+
+    fetchAndRender() {
+      logger.debug("Fetching and rendering forecast");
+      this.renderLoading();
+
+      this.requestFreshData()
+        .then((data) => {
+          if (data) {
+            try {
+              logger.debug("saving forecast");
+              saveForecast(localStorage, data);
+            } catch (e) {
+              logger.warn(`Could not save forecast: ${e.message}`);
+            }
+            this.renderForecast(data);
+          } else {
+            this.renderNoBeachSelected();
+          }
+        })
+        .catch((err) => {
+          logger.error("Failed to fetch forecast:", err);
+          this.renderError();
+        });
     },
 
     requestFreshData() {
@@ -99,26 +112,46 @@ Page(
       const state = getTrafficLightState(data.score);
       scoreTextWidget.setProperty(hmUI.prop.COLOR, state.color);
       scoreTextWidget.setProperty(hmUI.prop.TEXT, `${data.score.toFixed(0)}/10`);
-      iconMessageWidget.setProperty(hmUI.prop.TEXT, `${state.text} ${state.icon}`);
-      staleWidget.setProperty(hmUI.prop.TEXT, "");
+      messageWidget.setProperty(hmUI.prop.TEXT, `${state.text} ${state.icon}`);
+
+      statusWidget.setProperty(hmUI.prop.TEXT, this.formatLastUpdated(data.updatedAt));
+      refreshButton.setProperty(hmUI.prop.TEXT, MAIN_PAGE_LAYOUT.REFRESH_BUTTON.text);
+    },
+
+    handleRefresh() {
+      logger.debug("Handling manual refresh");
+      this.fetchAndRender();
+    },
+
+    formatLastUpdated(timestamp) {
+      if (!timestamp) return "never";
+      const now = Math.floor(Date.now() / 1000);
+      let diff = now - timestamp;
+      if (diff < 5) return "Updated just now";  // Handle clock sync issues
+      if (diff < 60) return `${diff}s ago`;
+      if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+      if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+      return `${Math.floor(diff / 86400)}d ago`;
     },
 
     renderLoading() {
       logger.debug("Rendering loading indicator");
       beachNameWidget.setProperty(hmUI.prop.TEXT, "Loading...");
       scoreTextWidget.setProperty(hmUI.prop.COLOR, 0x888888);
-      scoreTextWidget.setProperty(hmUI.prop.TEXT, "...");
-      iconMessageWidget.setProperty(hmUI.prop.TEXT, "");
-      staleWidget.setProperty(hmUI.prop.TEXT, "");
+      scoreTextWidget.setProperty(hmUI.prop.TEXT, "");
+      messageWidget.setProperty(hmUI.prop.TEXT, "");
+      statusWidget.setProperty(hmUI.prop.TEXT, "");
+      refreshButton.setProperty(hmUI.prop.TEXT, "");
     },
 
     renderNoBeachSelected() {
       logger.debug("Rendering no beach selected indicator");
       beachNameWidget.setProperty(hmUI.prop.TEXT, "No Beach Selected");
       scoreTextWidget.setProperty(hmUI.prop.COLOR, 0x888888);
-      scoreTextWidget.setProperty(hmUI.prop.TEXT, "-");
-      iconMessageWidget.setProperty(hmUI.prop.TEXT, "Go to Settings ⚙️");
-      staleWidget.setProperty(hmUI.prop.TEXT, "Select a beach");
+      scoreTextWidget.setProperty(hmUI.prop.TEXT, "");
+      messageWidget.setProperty(hmUI.prop.TEXT, "Go to Settings ⚙️");
+      statusWidget.setProperty(hmUI.prop.TEXT, "");
+      refreshButton.setProperty(hmUI.prop.TEXT, MAIN_PAGE_LAYOUT.REFRESH_BUTTON.text);
     },
 
     renderError() {
@@ -126,17 +159,9 @@ Page(
       beachNameWidget.setProperty(hmUI.prop.TEXT, "Oh no...");
       scoreTextWidget.setProperty(hmUI.prop.COLOR, 0xFF6666);
       scoreTextWidget.setProperty(hmUI.prop.TEXT, "");
-      iconMessageWidget.setProperty(hmUI.prop.TEXT, "Try again later! ⚠️");
-      staleWidget.setProperty(hmUI.prop.TEXT, "");
-    },
-
-    renderServiceError(errorMessage) {
-      logger.debug("Rendering service error:", errorMessage);
-      beachNameWidget.setProperty(hmUI.prop.TEXT, "Service Error");
-      scoreTextWidget.setProperty(hmUI.prop.COLOR, 0xFFAA00);
-      scoreTextWidget.setProperty(hmUI.prop.TEXT, "");
-      iconMessageWidget.setProperty(hmUI.prop.TEXT, "Try again later! 🌧️");
-      staleWidget.setProperty(hmUI.prop.TEXT, errorMessage);
+      messageWidget.setProperty(hmUI.prop.TEXT, "Try again later! ⚠️");
+      statusWidget.setProperty(hmUI.prop.TEXT, "");
+      refreshButton.setProperty(hmUI.prop.TEXT, MAIN_PAGE_LAYOUT.REFRESH_BUTTON.text);
     },
   })
 );

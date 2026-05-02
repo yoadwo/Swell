@@ -42,9 +42,9 @@ export const MAIN_PAGE_LAYOUT = {
     text_style: hmUI.text_style.NONE,
   },
 
-  ICON_MESSAGE: {
+  MESSAGE: {
     x: 0,
-    y: px(240),
+    y: px(215),
     w: SQUARE_WIDTH,
     h: px(50),
     text_size: px(28),
@@ -54,13 +54,25 @@ export const MAIN_PAGE_LAYOUT = {
     text_style: hmUI.text_style.WRAP,
   },
 
-  STALE: {
+  REFRESH_BUTTON: {
     x: 0,
-    y: px(360),
+    y: px(285),
     w: SQUARE_WIDTH,
-    h: px(30),
-    text_size: px(18),
+    h: px(20),
+    text: "Refresh",
+    text_size: px(16),
     color: 0x888888,
+    align_h: hmUI.align.CENTER_H,
+    align_v: hmUI.align.CENTER_V,
+  },
+
+  STATUS: {
+    x: 0,
+    y: px(260),
+    w: SQUARE_WIDTH,
+    h: px(18),
+    text_size: px(12),
+    color: 0x00aaff,
     align_h: hmUI.align.CENTER_H,
     align_v: hmUI.align.CENTER_V,
     text_style: hmUI.text_style.NONE,

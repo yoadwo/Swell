@@ -62,6 +62,7 @@ export function loadForecast(storage) {
   const logger = getLogger();
   if (raw) {
     logger.info("Found cached forecast");
+    logger.debug("raw", raw);
     return JSON.parse(raw);
   }
   logger.info("No cached forecast");
