@@ -6,6 +6,8 @@ import { MAIN_PAGE_LAYOUT } from "zosLoader:./index.[pf].layout.js";
 import { log as Logger } from "@zos/utils";
 import { setupGestures } from "../../utils/gestures";
 import { localStorage } from "@zos/storage";
+import { connectStatus } from "@zos/ble";
+import { showToast } from "@zos/interaction";
 
 const logger = Logger.getLogger("page.index");
 
@@ -66,6 +68,13 @@ Page(
 
     fetchAndRender() {
       logger.debug("Fetching and rendering forecast");
+
+      if (!connectStatus()) {
+        logger.info("Phone not connected");
+        showToast({ content: "Cannot refresh data, phone is not paired" });
+        return;
+      }
+
       this.renderLoading();
 
       this.requestFreshData()
@@ -83,7 +92,7 @@ Page(
           }
         })
         .catch((err) => {
-          logger.error("Failed to fetch forecast:", err);
+          logger.error("Failed to fetch forecast:", err.message);
           this.renderError();
         });
     },
@@ -137,7 +146,6 @@ Page(
     renderLoading() {
       logger.debug("Rendering loading indicator");
       beachNameWidget.setProperty(hmUI.prop.TEXT, "Loading...");
-      scoreTextWidget.setProperty(hmUI.prop.COLOR, 0x888888);
       scoreTextWidget.setProperty(hmUI.prop.TEXT, "");
       messageWidget.setProperty(hmUI.prop.TEXT, "");
       statusWidget.setProperty(hmUI.prop.TEXT, "");
@@ -147,7 +155,6 @@ Page(
     renderNoBeachSelected() {
       logger.debug("Rendering no beach selected indicator");
       beachNameWidget.setProperty(hmUI.prop.TEXT, "No Beach Selected");
-      scoreTextWidget.setProperty(hmUI.prop.COLOR, 0x888888);
       scoreTextWidget.setProperty(hmUI.prop.TEXT, "");
       messageWidget.setProperty(hmUI.prop.TEXT, "Go to Settings ⚙️");
       statusWidget.setProperty(hmUI.prop.TEXT, "");

@@ -412,15 +412,17 @@ swell/src/
 
 ## Implementation Order Summary
 
-1. **Phase 1:** Settings App — beach list, save to storage
-2. **Phase 2:** Main Page — traffic light UI with mock score
-3. **Phase 3:** Side Service — fetch skeleton, placeholder data
-4. **Phase 4:** Connect Main Page to real data from Side Service
-5. **Phase 5:** Conditions Page — detailed surf params
-6. **Phase 6:** Weather Page — temperature, UV index
-7. **Phase 7:** Forecast Page — 3-4 day outlook
-8. **Phase 8:** Help Page — score explanation
-9. **Phase 9:** Workout Extension — cached view during workout
+### POC (Proof of Concept)
+Phases 1-9: Core app with Settings, Main Page, Side Service, Conditions, Weather, Forecast, Help, and Workout Extension.
+
+### Review
+Phase 10: Review current app state against PRD requirements.
+
+### Refactoring
+Phases 11-13: Index page improvements, Settings expansion, and Wave Height Graph.
+
+### Backlog
+- Replace static "Loading..." text with animated spinner (IMG_ANIM widget) - attempted but animation not rendering on device.
 
 ---
 
