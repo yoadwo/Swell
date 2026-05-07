@@ -320,15 +320,15 @@ See **PRD 4.2 -> Page 3: Weather Page** (FR-4).
 - Review PLAN.md
 - Compare knowledge from PRD and PLAN to current code; did we miss anything? create a report of missing issues.
 
-### Phase 11: Refactor Index page (FR-8)
+### Phase 11: Refactor Index page (FR-8) - Done
 
 **Goal:** Index page will contain more helpful data
 
 - Last updated text - Done
 - Is online / paired with phone indication - Done
 - Force update (let's call it "refresh"). Must be paired to get updated. - Done
-- Offline experience: if connectStatus is false, still show cached data; change "last updated" color to red;
-- Refresh button behavior when no beach selected: make sure it's available, should allow update after user selects beach without app restart.
+- Offline experience: if connectStatus is false, still show cached data; change "last updated" color to red. - Done
+- Refresh button behavior when no beach selected: make sure it's available, should allow update after user selects beach without app restart. - Done
 
 
 ---
@@ -337,7 +337,8 @@ See **PRD 4.2 -> Page 3: Weather Page** (FR-4).
 
 **Goal:** Settings app will display more beaches and allow search
 
-- If possible use internet search
+- Multi tab/section design. Discuss ui/ux first.
+- If possible use internet search to allow search of any beach coordinates.
 - If not, should broaden the hard-coded list
   - Keep the tel aviv beaches.
   - Add sri lanka beaches (two weligama and arugam bay). search internet for their names and coordinates. Take the famous ones.

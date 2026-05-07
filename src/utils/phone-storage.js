@@ -15,6 +15,7 @@
  */
 
 const SELECTED_BEACH_KEY = 'selectedBeach';
+const ACTIVE_TAB_KEY = 'activeTab';
 
 /**
  * Save beach selection to settingsStorage
@@ -25,14 +26,14 @@ const SELECTED_BEACH_KEY = 'selectedBeach';
 export function saveBeach(settingsStorage, beach) {
   try {
     if (!settingsStorage || !settingsStorage.setItem) {
-      console.warn('settingsStorage not available');
+      console.warn('[phone-storage] settingsStorage not available');
       return false;
     }
     settingsStorage.setItem(SELECTED_BEACH_KEY, JSON.stringify(beach));
-    console.log('Beach saved to settingsStorage:', beach.name);
+    console.log('[phone-storage] Beach saved:', beach.name);
     return true;
   } catch (e) {
-    console.warn('Failed to save beach:', e);
+    console.warn('[phone-storage] Failed to save beach:', e);
     return false;
   }
 }
@@ -44,14 +45,41 @@ export function saveBeach(settingsStorage, beach) {
  */
 export function loadBeach(settingsStorage) {
   if (!settingsStorage || !settingsStorage.getItem) {
-    throw new Error('settingsStorage not available');
+    throw new Error('[phone-storage] settingsStorage not available');
   }
   const raw = settingsStorage.getItem(SELECTED_BEACH_KEY);
   if (raw) {
     const beach = JSON.parse(raw);
-    console.debug('Beach loaded from settingsStorage:', beach);
+    console.debug('[phone-storage] Beach loaded:', beach.name);
     return beach;
   }
-  console.debug('No beach found in settingsStorage');
+  console.debug('[phone-storage] No beach found');
   return null;
+}
+
+/**
+ * Get active tab from settingsStorage
+ * @param {Object} settingsStorage - settingsStorage object
+ * @returns {string|null} - Active tab or null if not set
+ */
+export function getActiveTab(settingsStorage) {
+  if (!settingsStorage || !settingsStorage.getItem) {
+    return null;
+  }
+  const tab = settingsStorage.getItem(ACTIVE_TAB_KEY);
+  console.log('[phone-storage] Active tab get:', tab);
+  return tab;
+}
+
+/**
+ * Set active tab in settingsStorage
+ * @param {Object} settingsStorage - settingsStorage object
+ * @param {string} tab - Tab key
+ */
+export function setActiveTab(settingsStorage, tab) {
+  if (!settingsStorage || !settingsStorage.setItem) {
+    return;
+  }
+  console.log('[phone-storage] Active tab set:', tab);
+  settingsStorage.setItem(ACTIVE_TAB_KEY, tab);
 }
