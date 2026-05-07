@@ -76,7 +76,7 @@ flowchart TB
 
 ## Implementation Phases
 
-### Phase 1: Settings App (FR-1)
+### Phase 1: Settings App (FR-1) - Done
 
 **Goal:** Allow user to select a beach from a predefined list of Israel beaches.
 
@@ -104,7 +104,7 @@ settingsStorage.setItem('selectedBeach', JSON.stringify({ name, lat, lon }));
 
 ---
 
-### Phase 2: Main Page - Swell Index (FR-2)
+### Phase 2: Main Page - Swell Index (FR-2) - Done
 
 **Goal:** Display traffic light "Go/No-Go" indicator based on score.
 
@@ -135,7 +135,7 @@ function getTrafficLightState(score) {
 
 ---
 
-### Phase 3: Side Service - Fetch Forecast (FR-7)
+### Phase 3: Side Service - Fetch Forecast (FR-7) - Done
 
 **Goal:** Side Service fetches forecast and sends to Device App.
 
@@ -201,7 +201,7 @@ res(null, payload);
 
 ---
 
-### Phase 4: Connect Main Page to Real Data
+### Phase 4: Connect Main Page to Real Data - Done
 
 **4.1 Device App requests forecast**
 
@@ -234,7 +234,7 @@ res(null, payload);
 
 ---
 
-### Phase 5: Conditions Page (FR-3)
+### Phase 5: Conditions Page (FR-3) - Done
 
 **Goal:** Display detailed surf conditions.
 
@@ -249,7 +249,7 @@ See **PRD 4.2 -> Page 2: Conditions Page** (FR-3) for full parameter list and wh
 
 ---
 
-### Phase 6: Weather Page (FR-4)
+### Phase 6: Weather Page (FR-4) - Done (Merged with FR-3)
 
 **Goal:** Display current weather conditions.
 
@@ -263,7 +263,7 @@ See **PRD 4.2 -> Page 3: Weather Page** (FR-4).
 
 ---
 
-### Phase 7: Forecast Page (FR-5)
+### Phase 7: Forecast Page (FR-5) - Done
 
 **Goal:** Display 3-4 day outlook.
 
@@ -285,15 +285,7 @@ See **PRD 4.2 -> Page 3: Weather Page** (FR-4).
 
 ---
 
-### Phase 7.3: Forecast Caching Strategy (Deferred)
-
-- **Current:** Daily forecast fetched with each request (same as current conditions)
-- **Future consideration:** Update daily forecast only once per 24h, but current conditions hourly
-- This would require separate cache timestamps for current vs daily
-
----
-
-### Phase 8: Help Page (FR-6)
+### Phase 8: Help Page (FR-6) - Done
 
 **Goal:** Explain score calculation.
 
@@ -318,7 +310,7 @@ See **PRD 4.2 -> Page 3: Weather Page** (FR-4).
 
 ---
 
-### Phase 10: Review
+### Phase 10: Review - Done
 
 **Goal:** Review current app state
 
@@ -332,9 +324,12 @@ See **PRD 4.2 -> Page 3: Weather Page** (FR-4).
 
 **Goal:** Index page will contain more helpful data
 
-- Last updated text
-- Is online / paired with phone indication
-- Force update (let's call it "refresh"). Must be paired to get updated.
+- Last updated text - Done
+- Is online / paired with phone indication - Done
+- Force update (let's call it "refresh"). Must be paired to get updated. - Done
+- Offline experience: if connectStatus is false, still show cached data; change "last updated" color to red;
+- Refresh button behavior when no beach selected: make sure it's available, should allow update after user selects beach without app restart.
+
 
 ---
 
@@ -347,6 +342,7 @@ See **PRD 4.2 -> Page 3: Weather Page** (FR-4).
   - Keep the tel aviv beaches.
   - Add sri lanka beaches (two weligama and arugam bay). search internet for their names and coordinates. Take the famous ones.
   - Add california beaches (2 malibu, 2 santa barbara, santa cruz). Take the famous ones.
+- Hardcoded 1hr cache freshness (make configurable) - add it to the settings app. ask for ui/ux first.
 
 ---
 
@@ -423,6 +419,10 @@ Phases 11-13: Index page improvements, Settings expansion, and Wave Height Graph
 
 ### Backlog
 - Replace static "Loading..." text with animated spinner (IMG_ANIM widget) - attempted but animation not rendering on device.
+- Separate current forecast from daily; fetch daily independantly. Unsure what is the gain here.
+- Phase 9
+- Back navigation gesture documentation
+- Score color accessibility (contrast requirements)
 
 ---
 
