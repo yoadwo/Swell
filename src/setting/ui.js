@@ -2,12 +2,6 @@
 import { getCountryByCode, getAllCountryOptions } from "./beaches";
 import { saveBeach, setActiveTab, getSelectedCountry, setSelectedCountry } from "../utils/phone-storage";
 
-let cachedBeach = null;
-
-export function setSelectedBeach(beach) {
-  cachedBeach = beach;
-}
-
 export function renderTabBar(activeTab, settingsStorage) {
   return View(
     { style: { display: "flex", flexDirection: "row", marginBottom: "16px" } },
@@ -34,14 +28,12 @@ export function renderTabBar(activeTab, settingsStorage) {
   );
 }
 
-export function renderBeachesIndex(settingsStorage, countryCode) {
+export function renderBeachesIndex(settingsStorage, selectedBeach, countryCode) {
   const country = countryCode ? getCountryByCode(countryCode) : null;
   const beaches = country ? country.beaches : [];
 
   return View({}, [
-    Text({ style: { fontSize: "18px", fontWeight: "bold", marginBottom: "16px" } }, [
-      cachedBeach ? "Change Beach" : "Select Your Beach",
-    ]),
+    Text({ style: { fontSize: "18px", fontWeight: "bold", marginBottom: "16px" } }, "Select Your Beach"),
     Select({
       options: getAllCountryOptions(),
       value: countryCode || "israel",
@@ -50,7 +42,7 @@ export function renderBeachesIndex(settingsStorage, countryCode) {
     country && countryCode
       ? View({}, [
           ...beaches.map((beach) => {
-            const isSelected = cachedBeach && cachedBeach.name === beach.name;
+            const isSelected = selectedBeach && selectedBeach.name === beach.name;
             return View(
               {
                 key: beach.name,
@@ -80,7 +72,7 @@ export function renderBeachesIndex(settingsStorage, countryCode) {
                     borderRadius: "4px",
                   },
                   onClick: () => {
-                    cachedBeach = beach;
+                    selectedBeach = beach;
                     saveBeach(settingsStorage, beach);
                   },
                 }),

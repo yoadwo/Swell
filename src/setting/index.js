@@ -2,32 +2,39 @@
 import { loadBeach, getActiveTab, getSelectedCountry } from "../utils/phone-storage";
 import { renderTabBar, renderBeachesIndex, renderBeachesSearch, renderSettings, setSelectedBeach } from "./ui";
 
-function handleLoadState(settingsStorage) {
-  setSelectedBeach(loadBeach(settingsStorage));
-}
+ 
 
 AppSettingsPage({
+  state: {
+    activeTab: null,
+    selectedCountry: null,
+    selectedBeach: null,
+  },
   build(props) {
-    const activeTab = getActiveTab(props.settingsStorage);
-    const selectedCountry = getSelectedCountry(props.settingsStorage);
-
-    handleLoadState(props.settingsStorage);
+    this.getStorage(props);
 
     return View({ style: { padding: "12px 16px" } }, [
-      renderTabBar(activeTab, props.settingsStorage),
+      renderTabBar(this.state.activeTab, props.settingsStorage),
 
       View(
-        { style: { display: activeTab === "beaches-index" ? "flex" : "none" } },
-        renderBeachesIndex(props.settingsStorage, selectedCountry)
+        { style: { display: this.state.activeTab === "beaches-index" ? "flex" : "none" } },
+        renderBeachesIndex(props.settingsStorage, this.state.selectedBeach, this.state.selectedCountry)
       ),
       View(
-        { style: { display: activeTab === "beaches-search" ? "flex" : "none" } },
+        { style: { display: this.state.activeTab === "beaches-search" ? "flex" : "none" } },
         renderBeachesSearch()
       ),
       View(
-        { style: { display: activeTab === "settings" ? "flex" : "none" } },
+        { style: { display: this.state.activeTab === "settings" ? "flex" : "none" } },
         renderSettings()
       ),
     ]);
   },
+  getStorage(props) {
+    this.state.activeTab = getActiveTab(props.settingsStorage);
+    this.state.selectedCountry = getSelectedCountry(props.settingsStorage);
+    const selectedBeach = loadBeach(props.settingsStorage);
+    this.state.selectedBeach = selectedBeach;
+    setSelectedBeach(selectedBeach);
+  }
 });
