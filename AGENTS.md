@@ -2,14 +2,15 @@
 
 ## Project purpose
 Creating a Surf Forecast Analysis based on weather conditions, written for Amazfit Watches (using ZeppOs development framework).
-For better understanding of the requirements, please read now @PRD.md and @PLAN.md in this project's path.
-For better understanding of the framework, use the /zepp-os-development skill (may need to traverse one level up before you see .claude's skills directory).
-When a context window becomes too dense, or when moving between one implementation phase to another, 
-it is recommended to use the /session-manager skill for a smooth handover between sessions.
+
+## Skills Loading
+- For better understanding of the requirements, please read now @PRD.md and @PLAN.md in this project's path.
+- For better understanding of the framework, use the .claude/zepp-os-development skill
+- Look for skills under .claude/** or .cursor/**. Read them now.
 
 ## Project Overview
  Zepp OS Mini Program for Amazfit watches (Surf Forecast App)
-- Location: C:\Users\yoadw\code\amazfit\Swell\src
+- Location: /amazfit/Swell/src
 - Framework: Zepp OS API 4.2
 - Structure: 3-part (Device App, Settings App, Side Service)
 
