@@ -1,5 +1,5 @@
-// Predefined list of surf beaches in Israel
-export const ISRAEL_BEACHES = [
+// Predefined list of surf beaches by country
+const ISRAEL_BEACHES = [
   { name: "Frishman", lat: 32.0949, lon: 34.7726 },
   { name: "Hilton", lat: 32.0989, lon: 34.7710 },
   { name: "Dolphinarium", lat: 32.0694, lon: 34.7674 },
@@ -14,3 +14,31 @@ export const ISRAEL_BEACHES = [
   { name: "Sironit", lat: 32.1850, lon: 34.8400 },
   { name: "HaSharon", lat: 32.2000, lon: 34.8450 },
 ];
+
+const SRI_LANKA_BEACHES = [
+  { name: "Weligama", lat: 5.9739, lon: 80.4294 },
+  { name: "Weligama North", lat: 5.9800, lon: 80.4200 },
+  { name: "Arugam Bay", lat: 6.8500, lon: 81.8333 },
+];
+
+const CALIFORNIA_BEACHES = [
+  { name: "Malibu Surfrider", lat: 34.0356, lon: -118.6783 },
+  { name: "Malibu Lagoon", lat: 34.0333, lon: -118.6792 },
+  { name: "West Beach (SB)", lat: 34.4106, lon: -119.6900 },
+  { name: "East Beach (SB)", lat: 34.4142, lon: -119.6820 },
+  { name: "Steamer Lane", lat: 36.9523, lon: -122.0212 },
+];
+
+const COUNTRIES = [
+  { name: "Israel", code: "israel", beaches: ISRAEL_BEACHES },
+  { name: "Sri Lanka", code: "sri-lanka", beaches: SRI_LANKA_BEACHES },
+  { name: "California", code: "california", beaches: CALIFORNIA_BEACHES },
+];
+
+export function getCountryByCode(code) {
+  return COUNTRIES.find(c => c.code === code);
+}
+
+export function getAllCountryOptions() {
+  return COUNTRIES.map(c => ({ name: c.name, value: c.code }));
+}

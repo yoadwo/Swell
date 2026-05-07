@@ -16,6 +16,7 @@
 
 const SELECTED_BEACH_KEY = 'selectedBeach';
 const ACTIVE_TAB_KEY = 'activeTab';
+const SELECTED_COUNTRY_KEY = 'selectedCountry';
 
 /**
  * Save beach selection to settingsStorage
@@ -30,7 +31,7 @@ export function saveBeach(settingsStorage, beach) {
       return false;
     }
     settingsStorage.setItem(SELECTED_BEACH_KEY, JSON.stringify(beach));
-    console.log('[phone-storage] Beach saved:', beach.name);
+    console.log('[phone-storage] Beach saved:', beach.name, beach.lat, beach.lon);
     return true;
   } catch (e) {
     console.warn('[phone-storage] Failed to save beach:', e);
@@ -50,7 +51,7 @@ export function loadBeach(settingsStorage) {
   const raw = settingsStorage.getItem(SELECTED_BEACH_KEY);
   if (raw) {
     const beach = JSON.parse(raw);
-    console.debug('[phone-storage] Beach loaded:', beach.name);
+    console.debug('[phone-storage] Beach loaded:', beach.name, beach.lat, beach.lon);
     return beach;
   }
   console.debug('[phone-storage] No beach found');
@@ -64,11 +65,11 @@ export function loadBeach(settingsStorage) {
  */
 export function getActiveTab(settingsStorage) {
   if (!settingsStorage || !settingsStorage.getItem) {
-    return null;
+    return "beaches-index";
   }
   const tab = settingsStorage.getItem(ACTIVE_TAB_KEY);
   console.log('[phone-storage] Active tab get:', tab);
-  return tab;
+  return tab || "beaches-index";
 }
 
 /**
@@ -82,4 +83,18 @@ export function setActiveTab(settingsStorage, tab) {
   }
   console.log('[phone-storage] Active tab set:', tab);
   settingsStorage.setItem(ACTIVE_TAB_KEY, tab);
+}
+
+export function getSelectedCountry(settingsStorage) {
+  if (!settingsStorage || !settingsStorage.getItem) {
+    return "israel";
+  }
+  return settingsStorage.getItem(SELECTED_COUNTRY_KEY) || "israel";
+}
+
+export function setSelectedCountry(settingsStorage, country) {
+  if (!settingsStorage || !settingsStorage.setItem) {
+    return;
+  }
+  settingsStorage.setItem(SELECTED_COUNTRY_KEY, country);
 }
