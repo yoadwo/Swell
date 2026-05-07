@@ -333,17 +333,22 @@ See **PRD 4.2 -> Page 3: Weather Page** (FR-4).
 
 ---
 
-### Phase 12: Refactor Settings App (FR-10)
+### Phase 12: Refactor Settings App (FR-10) - Done (partial)
 
-**Goal:** Settings app will display more beaches and allow search
+**Done:**
+- Multi tab/section design with 3 tabs (Beaches, Search, Settings)
+- Country dropdown with Select component
+- Dynamic beach list by country
+- Expanded beaches: Israel (13), Sri Lanka (3), California (5)
 
-- Multi tab/section design. Discuss ui/ux first.
-- If possible use internet search to allow search of any beach coordinates.
-- If not, should broaden the hard-coded list
-  - Keep the tel aviv beaches.
-  - Add sri lanka beaches (two weligama and arugam bay). search internet for their names and coordinates. Take the famous ones.
-  - Add california beaches (2 malibu, 2 santa barbara, santa cruz). Take the famous ones.
-- Hardcoded 1hr cache freshness (make configurable) - add it to the settings app. ask for ui/ux first.
+**Not done (TBD):**
+- Search tab - placeholder only (needs Nominatim API)
+- Settings tab - placeholder only (cache freshness config)
+- Select initial value not showing on first load
+
+**Plan for remaining:**
+- Implement Search tab with Nominatim API (internet search)
+- Implement Settings tab with cache freshness config (1hr defaults)
 
 ---
 
