@@ -59,21 +59,19 @@ Page(
       }
 
       if (isCacheFresh(cached)) {
-        logger.info("Rendering data from for beach: %s", cached.beach);
-        this.renderForecast(cached);
+        logger.info("Rendering fresh cache for beach: %s", cached.beach);
+        this.renderForecast(cached, false);
+      } else if (cached && !connectStatus()) {
+        logger.info("Offline, showing stale cache");
+        this.renderForecast(cached, true);
       } else {
+        logger.info("Attempt to fetch and render forecast")
         this.fetchAndRender();
       }
     },
 
     fetchAndRender() {
       logger.debug("Fetching and rendering forecast");
-
-      if (!connectStatus()) {
-        logger.info("Phone not connected");
-        showToast({ content: "Cannot refresh data, phone is not paired" });
-        return;
-      }
 
       this.renderLoading();
 
@@ -115,8 +113,8 @@ Page(
         });
     },
 
-    renderForecast(data) {
-      logger.debug("Rendering forecast");
+    renderForecast(data, isOffline = false) {
+      logger.debug("Rendering forecast, offline=%s", isOffline);
       beachNameWidget.setProperty(hmUI.prop.TEXT, data.beach);
       const state = getTrafficLightState(data.score);
       scoreTextWidget.setProperty(hmUI.prop.COLOR, state.color);
@@ -124,11 +122,17 @@ Page(
       messageWidget.setProperty(hmUI.prop.TEXT, `${state.text} ${state.icon}`);
 
       statusWidget.setProperty(hmUI.prop.TEXT, this.formatLastUpdated(data.updatedAt));
+      statusWidget.setProperty(hmUI.prop.COLOR, isOffline ? 0xFF6666 : 0x00aaff);
       refreshButton.setProperty(hmUI.prop.TEXT, MAIN_PAGE_LAYOUT.REFRESH_BUTTON.text);
     },
 
     handleRefresh() {
-      logger.debug("Handling manual refresh");
+      logger.info("Handling manual refresh");
+      if (!connectStatus()) {
+        logger.info("Phone not connected, cannot refresh");
+        showToast({ content: "Cannot refresh, phone not paired" });
+        return;
+      }
       this.fetchAndRender();
     },
 
