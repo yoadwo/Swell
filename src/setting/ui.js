@@ -107,7 +107,6 @@ function renderSearchResultList(settingsStorage, searchResults, onAdd) {
         [
           View({ style: { flex: 1 } }, [
             Text({ style: { fontSize: "14px", marginBottom: "4px" } }, [shortName]),
-            Text({ style: { fontSize: "12px", color: "#64748b" } }, [result.lat.toFixed(4) + ", " + result.lon.toFixed(4)]),
           ]),
           Button({
             label: "Add",

@@ -17,5 +17,4 @@ export function ensureFreshVisit(settingsStorage) {
   }
   visitInitialized = true;
   clearSearchSession(settingsStorage);
-  console.debug(LOG_CLASS, 'search session cleared');
 }

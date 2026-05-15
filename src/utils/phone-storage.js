@@ -225,6 +225,7 @@ export function getToast(settingsStorage) {
     return { visible: false, message: "" };
   }
   const toast = JSON.parse(raw);
-  console.debug(LOG_CLASS, 'Toast loaded:', toast);
+  // log is missing on purpose
+  // it's not a very important log
   return toast;
 }

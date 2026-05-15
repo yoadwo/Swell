@@ -30,29 +30,25 @@ AppSettingsPage({
     toastMessage: "",
   },
   build(props) {
+    debugger;
     console.debug(LOG_CLASS, 'build initiated');
     ensureFreshVisit(props.settingsStorage);
     this.getStorage(props);
 
+    const tabContent = this.state.activeTab === "favorites"
+      ? renderFavorites(props.settingsStorage, this.state.favorites, this.state.selectedBeach, this.selectBeach.bind(this), this.deleteBeach.bind(this))
+      : renderSearch(
+        props.settingsStorage,
+        this.state.searchQuery,
+        this.state.searchLoading,
+        this.state.searchResults,
+        this.onSearchRequest.bind(this),
+        this.onAdd.bind(this)
+      );
+
     return View({ style: { padding: "12px 16px" } }, [
       renderTabBar(this.state.activeTab, props.settingsStorage),
-
-      View(
-        { style: { display: this.state.activeTab === "favorites" ? "flex" : "none" } },
-        renderFavorites(props.settingsStorage, this.state.favorites, this.state.selectedBeach, this.selectBeach.bind(this), this.deleteBeach.bind(this))
-      ),
-      View(
-        { style: { display: this.state.activeTab === "search" ? "flex" : "none" } },
-        renderSearch(
-          props.settingsStorage,
-          this.state.searchQuery,
-          this.state.searchLoading,
-          this.state.searchResults,
-          this.onSearchResults.bind(this),
-          this.onAdd.bind(this)
-        )
-      ),
-
+      tabContent,
       Toast({
         message: this.state.toastMessage,
         visible: this.state.showToast,
@@ -63,6 +59,7 @@ AppSettingsPage({
   getStorage(props) {
     const { settingsStorage } = props;
     this.state.activeTab = getActiveTab(settingsStorage);
+    // could be moved to the conditional tab create
     this.state.favorites = getFavorites(settingsStorage);
     this.state.selectedBeach = loadBeach(settingsStorage);
 
@@ -77,18 +74,16 @@ AppSettingsPage({
     const toast = getToast(settingsStorage);
     this.state.showToast = toast.visible;
     this.state.toastMessage = toast.message;
-    console.debug(LOG_CLASS, 'state hydrated from storage');
   },
   selectBeach(settingsStorage, beach) {
-    console.log(LOG_CLASS, 'select beach:', beach.name);
     saveBeach(settingsStorage, beach);
   },
   deleteBeach(settingsStorage, beach) {
-    console.log(LOG_CLASS, 'delete beach:', beach.name);
     removeFavorite(settingsStorage, beach);
   },
   onAdd(settingsStorage, beach) {
     console.log(LOG_CLASS, 'add beach:', beach.name);
+    // beach name might be comma-separate string with multiple common aliases
     const shortName = beach.name.split(",")[0];
     const beachEntry = { name: shortName, lat: beach.lat, lon: beach.lon };
     addFavorite(settingsStorage, beachEntry);
@@ -96,7 +91,7 @@ AppSettingsPage({
     showToast(settingsStorage, 'Added to favorites');
     setTimeout(() => clearToast(settingsStorage), TOAST_DURATION_MS);
   },
-  onSearchResults(settingsStorage, query) {
+  onSearchRequest(settingsStorage, query) {
     console.log(LOG_CLASS, 'on search:', query);
     if (query.length < 3) {
       saveSearchSession(settingsStorage, { query, results: [], loading: false });
@@ -108,7 +103,7 @@ AppSettingsPage({
     fetch(url)
       .then(res => res.json())
       .then(data => {
-        console.log(LOG_CLASS, 'search results count:', data.length);
+        console.info(LOG_CLASS, 'search results:', data);
         const results = data.map(item => ({
           lat: parseFloat(item.lat),
           lon: parseFloat(item.lon),
