@@ -15,8 +15,9 @@
  */
 
 const SELECTED_BEACH_KEY = 'selectedBeach';
-const ACTIVE_TAB_KEY = 'activeTab';
-const SELECTED_COUNTRY_KEY = 'selectedCountry';
+const FAVORITES_KEY = 'favorites';
+const ACTIVE_TAB_KEY = 'activeTab'; 
+const LOG_CLASS = '[phone-storage]';
 
 /**
  * Save beach selection to settingsStorage
@@ -27,14 +28,14 @@ const SELECTED_COUNTRY_KEY = 'selectedCountry';
 export function saveBeach(settingsStorage, beach) {
   try {
     if (!settingsStorage || !settingsStorage.setItem) {
-      console.warn('[phone-storage] settingsStorage not available');
+      console.warn(LOG_CLASS,'settingsStorage not available');
       return false;
     }
     settingsStorage.setItem(SELECTED_BEACH_KEY, JSON.stringify(beach));
-    console.log('[phone-storage] Beach saved:', beach.name, beach.lat, beach.lon);
+    console.log(LOG_CLASS,'Beach saved:', beach.name, beach.lat, beach.lon);
     return true;
   } catch (e) {
-    console.warn('[phone-storage] Failed to save beach:', e);
+    console.warn(LOG_CLASS, 'Failed to save beach:', e);
     return false;
   }
 }
@@ -46,30 +47,52 @@ export function saveBeach(settingsStorage, beach) {
  */
 export function loadBeach(settingsStorage) {
   if (!settingsStorage || !settingsStorage.getItem) {
-    throw new Error('[phone-storage] settingsStorage not available');
+    throw new Error(LOG_CLASS, 'settingsStorage not available');
   }
   const raw = settingsStorage.getItem(SELECTED_BEACH_KEY);
   if (raw) {
     const beach = JSON.parse(raw);
-    console.debug('[phone-storage] Beach loaded:', beach.name, beach.lat, beach.lon);
+    console.debug(LOG_CLASS, 'Beach loaded:', beach.name, beach.lat, beach.lon);
     return beach;
   }
-  console.debug('[phone-storage] No beach found');
+  console.debug(LOG_CLASS, 'No beach found');
   return null;
 }
 
-/**
- * Get active tab from settingsStorage
- * @param {Object} settingsStorage - settingsStorage object
- * @returns {string|null} - Active tab or null if not set
- */
-export function getActiveTab(settingsStorage) {
+export function getFavorites(settingsStorage) {
   if (!settingsStorage || !settingsStorage.getItem) {
-    return "beaches-index";
+    return [];
   }
-  const tab = settingsStorage.getItem(ACTIVE_TAB_KEY);
-  console.log('[phone-storage] Active tab get:', tab);
-  return tab || "beaches-index";
+  const raw = settingsStorage.getItem(FAVORITES_KEY);
+  if (raw) {
+    const favorites = JSON.parse(raw);
+    console.debug(LOG_CLASS, 'Favorites loaded:', favorites);
+    return favorites;
+  }
+  console.debug(LOG_CLASS, 'No favorites found');
+  return [];
+}
+
+export function addFavorite(settingsStorage, beach) {
+  if (!settingsStorage || !settingsStorage.setItem) {
+    return;
+  }
+  const favorites = getFavorites(settingsStorage);
+  if (!favorites.find(f => f.lat === beach.lat && f.lon === beach.lon)) {
+    favorites.push(beach);
+    settingsStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+    console.debug(LOG_CLASS, 'Favorite added:', beach.name);
+  }
+}
+
+export function removeFavorite(settingsStorage, beach) {
+  if (!settingsStorage || !settingsStorage.setItem) {
+    return;
+  }
+  let favorites = getFavorites(settingsStorage);
+  favorites = favorites.filter(f => !(f.lat === beach.lat && f.lon === beach.lon));
+  settingsStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+  console.debug(LOG_CLASS, 'Favorite removed:', beach.name);
 }
 
 /**
@@ -81,20 +104,20 @@ export function setActiveTab(settingsStorage, tab) {
   if (!settingsStorage || !settingsStorage.setItem) {
     return;
   }
-  console.log('[phone-storage] Active tab set:', tab);
+  console.debug(LOG_CLASS, 'Active tab set:', tab);
   settingsStorage.setItem(ACTIVE_TAB_KEY, tab);
 }
 
-export function getSelectedCountry(settingsStorage) {
+/**
+ * Get active tab from settingsStorage
+ * @param {Object} settingsStorage - settingsStorage object
+ * @returns {string|null} - Active tab or null if not set
+ */
+export function getActiveTab(settingsStorage) {
   if (!settingsStorage || !settingsStorage.getItem) {
-    return "israel";
+    return "favorites";
   }
-  return settingsStorage.getItem(SELECTED_COUNTRY_KEY) || "israel";
-}
-
-export function setSelectedCountry(settingsStorage, country) {
-  if (!settingsStorage || !settingsStorage.setItem) {
-    return;
-  }
-  settingsStorage.setItem(SELECTED_COUNTRY_KEY, country);
+  const tab = settingsStorage.getItem(ACTIVE_TAB_KEY);
+  console.debug(LOG_CLASS, 'Active tab get:', tab);
+  return tab || "favorites";
 }

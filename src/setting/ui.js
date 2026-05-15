@@ -1,14 +1,16 @@
 // Settings UI - rendering functions separated from AppSettingsPage
-import { getCountryByCode, getAllCountryOptions } from "./beaches";
-import { saveBeach, setActiveTab, getSelectedCountry, setSelectedCountry } from "../utils/phone-storage";
+import { setActiveTab  } from "../utils/phone-storage";
+
+const LOG_CLASS = '[settings.ui]';
+
 
 export function renderTabBar(activeTab, settingsStorage) {
+  console.debug(LOG_CLASS, 'rendering tab bar...');
   return View(
     { style: { display: "flex", flexDirection: "row", marginBottom: "16px" } },
     [
-      { key: "beaches-index", label: "Beaches" },
-      { key: "beaches-search", label: "Search" },
-      { key: "settings", label: "Settings" },
+      { key: "favorites", label: "Favorites" },
+      { key: "search", label: "Search" },
     ].map((tab) => {
       const isActive = activeTab === tab.key;
       return Button({
@@ -28,82 +30,112 @@ export function renderTabBar(activeTab, settingsStorage) {
   );
 }
 
-export function renderBeachesIndex(settingsStorage, selectedBeach, countryCode) {
-  const country = countryCode ? getCountryByCode(countryCode) : null;
-  const beaches = country ? country.beaches : [];
-
+export function renderFavorites(settingsStorage, favorites, selectedBeach, onSelect, onDelete) {
+  console.debug(LOG_CLASS, 'rendering favorites...');
   return View({}, [
-    Text({ style: { fontSize: "18px", fontWeight: "bold", marginBottom: "16px" } }, "Select Your Beach"),
-    Select({
-      options: getAllCountryOptions(),
-      value: countryCode || "israel",
-      onChange: (val) => setSelectedCountry(settingsStorage, val),
+    Text({ style: { fontSize: "18px", fontWeight: "bold", marginBottom: "16px" } }, "Favorites"),
+    favorites.length === 0
+      ? Text({ style: { fontSize: "14px", color: "#64748b" } }, "No favorites yet. Use Search to add beaches.")
+      : favorites.map((beach) => {
+          const isSelected = selectedBeach && beach.name === selectedBeach.name;
+          return View(
+            {
+              key: beach.lat + "-" + beach.lon,
+              style: {
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "12px",
+                marginTop: "8px",
+                marginBottom: "8px",
+                background: isSelected ? "#e0f2fe" : "#f8fafc",
+                borderRadius: "8px",
+                border: isSelected ? "2px solid #0ea5e9" : "1px solid #e2e8f0",
+              },
+            },
+            [
+              View({ style: { flex: 1, marginRight: "8px" } }, [
+                Text({ style: { fontSize: "14px", fontWeight: isSelected ? "bold" : "normal" } }, [beach.name]),
+              ]),
+              Button({
+                label: isSelected ? "Selected" : "Select",
+                style: {
+                  background: isSelected ? "#0ea5e9" : "#3b82f6",
+                  color: "white",
+                  padding: "6px 12px",
+                  borderRadius: "4px",
+                  fontSize: "12px",
+                  marginRight: "8px",
+                },
+                onClick: () => onSelect(settingsStorage, beach),
+              }),
+              Button({
+                label: "Delete",
+                style: {
+                  background: "#ef4444",
+                  color: "white",
+                  padding: "6px 12px",
+                  borderRadius: "4px",
+                  fontSize: "12px",
+                },
+                onClick: () => onDelete(settingsStorage, beach),
+              }),
+            ]
+          );
+        }),
+  ]);
+}
+
+export function renderSearch(settingsStorage, searchQuery, searchResults, onSearch, onAdd) {
+  console.debug(LOG_CLASS, 'rendering search...');
+  return View({}, [
+    TextInput({
+      label: "Search Surf Location",
+      placeholder: "surf spots, i.e. arugam bay, sri lanka",
+      value: searchQuery,
+      onChange: (val) => onSearch(settingsStorage, val),
     }),
-    country && countryCode
+    searchResults.length > 0
       ? View({}, [
-          ...beaches.map((beach) => {
-            const isSelected = selectedBeach && selectedBeach.name === beach.name;
+          Text({ style: { fontSize: "14px", color: "#64748b", marginBottom: "8px" } }, "Results:"),
+          ...searchResults.slice(0, 10).map((result) => {
+            console.log("[setting-app] result: ", result);
+            const shortName = result.name.split(",")[0];
             return View(
               {
-                key: beach.name,
+                key: result.lat + "-" + result.lon,
                 style: {
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
                   padding: "12px",
-                  marginTop: "8px",
-                  marginBottom: "8px",
-                  background: isSelected ? "#e0f2fe" : "#f8fafc",
+                  marginTop: "4px",
+                  marginBottom: "4px",
+                  background: "#f8fafc",
                   borderRadius: "8px",
-                  border: isSelected ? "2px solid #0ea5e9" : "1px solid #e2e8f0",
+                  border: "1px solid #e2e8f0",
                 },
               },
               [
-                Text({ style: { fontSize: "16px", fontWeight: isSelected ? "bold" : "normal" } }, [
-                  beach.name,
+                View({ style: { flex: 1 } }, [
+                  Text({ style: { fontSize: "14px", marginBottom: "4px" } }, [shortName]),
+                  Text({ style: { fontSize: "12px", color: "#64748b" } }, [result.lat.toFixed(4) + ", " + result.lon.toFixed(4)]),
                 ]),
                 Button({
-                  label: isSelected ? "Selected" : "Select",
+                  label: "Add",
                   style: {
-                    background: isSelected ? "#0ea5e9" : "#3b82f6",
+                    background: "#10b981",
                     color: "white",
-                    padding: "8px 16px",
+                    padding: "6px 12px",
                     borderRadius: "4px",
+                    fontSize: "12px",
                   },
-                  onClick: () => {
-                    selectedBeach = beach;
-                    saveBeach(settingsStorage, beach);
-                  },
+                  onClick: () => onAdd(settingsStorage, result),
                 }),
               ]
             );
           }),
         ])
-      : null,
-  ]);
-}
-
-export function renderBeachesSearch() {
-  return View({}, [
-    Text(
-      { style: { fontSize: "18px", fontWeight: "bold", marginBottom: "16px" } },
-      ["Search Beach"]
-    ),
-    Text({ style: { fontSize: "14px", color: "#64748b" } }, [
-      "Lorem ipsum dolor sit amet.",
-    ]),
-  ]);
-}
-
-export function renderSettings() {
-  return View({}, [
-    Text(
-      { style: { fontSize: "18px", fontWeight: "bold", marginBottom: "16px" } },
-      ["Settings"]
-    ),
-    Text({ style: { fontSize: "14px", color: "#64748b" } }, [
-      "Lorem ipsum dolor sit amet.",
-    ]),
+      : searchQuery.length >= 3
+      ? Text({ style: { fontSize: "14px", color: "#64748b" } }, "No results found.")
+      : Text({ style: { fontSize: "14px", color: "#64748b" } }, "Enter at least 3 characters to search."),
   ]);
 }
