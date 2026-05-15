@@ -23,10 +23,9 @@ const SEARCH_RESULTS_KEY = 'searchResults';
 const TOAST_KEY = 'toast';
 const LOG_CLASS = '[phone-storage]';
 
-/** @typedef {'idle'|'loading'|'done'|'error'} SearchStatus */
-/** @typedef {{ status: SearchStatus, query: string, results: Array<{name:string,lat:number,lon:number}>, updatedAt?: number }} SearchSession */
+/** @typedef {{ query: string, results: Array<{name:string,lat:number,lon:number}>, loading: boolean, updatedAt?: number }} SearchSession */
 
-const EMPTY_SEARCH_SESSION = { status: 'idle', query: '', results: [] };
+const EMPTY_SEARCH_SESSION = { query: '', results: [], loading: false };
 
 /**
  * Save beach selection to settingsStorage
@@ -158,9 +157,27 @@ export function getSearchSession(settingsStorage) {
     return { ...EMPTY_SEARCH_SESSION };
   }
 
-  const session = JSON.parse(raw);
-  console.debug(LOG_CLASS, 'Search session loaded:', session.status, session.results.length);
+  const parsed = JSON.parse(raw);
+  const session = normalizeSearchSession(parsed);
+  console.debug(LOG_CLASS, 'Search session loaded:', session.loading, session.results.length);
   return session;
+}
+
+/** @param {object} raw */
+function normalizeSearchSession(raw) {
+  if (typeof raw.loading === 'boolean') {
+    return {
+      query: raw.query || '',
+      results: raw.results || [],
+      loading: raw.loading,
+    };
+  }
+  const loading = raw.status === 'loading';
+  return {
+    query: raw.query || '',
+    results: loading ? [] : (raw.results || []),
+    loading,
+  };
 }
 
 /**
@@ -174,7 +191,7 @@ export function saveSearchSession(settingsStorage, session) {
   removeSearchKeys(settingsStorage);
   const payload = { ...session, updatedAt: Date.now() };
   settingsStorage.setItem(SEARCH_SESSION_KEY, JSON.stringify(payload));
-  console.debug(LOG_CLASS, 'Search session saved:', payload.status, payload.results.length);
+  console.debug(LOG_CLASS, 'Search session saved:', payload.loading, payload.results.length);
 }
 
 export function clearSearchSession(settingsStorage) {

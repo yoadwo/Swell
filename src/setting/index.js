@@ -25,7 +25,7 @@ AppSettingsPage({
     selectedBeach: null,
     searchResults: [],
     searchQuery: "",
-    searchStatus: "idle",
+    searchLoading: false,
     showToast: false,
     toastMessage: "",
   },
@@ -46,7 +46,7 @@ AppSettingsPage({
         renderSearch(
           props.settingsStorage,
           this.state.searchQuery,
-          this.state.searchStatus,
+          this.state.searchLoading,
           this.state.searchResults,
           this.onSearchResults.bind(this),
           this.onAdd.bind(this)
@@ -68,8 +68,11 @@ AppSettingsPage({
 
     const session = getSearchSession(settingsStorage);
     this.state.searchQuery = session.query;
-    this.state.searchStatus = session.status;
-    this.state.searchResults = session.status === 'done' ? session.results : [];
+    this.state.searchLoading = session.loading;
+    this.state.searchResults = [];
+    if (!session.loading) {
+      this.state.searchResults = session.results;
+    }
 
     const toast = getToast(settingsStorage);
     this.state.showToast = toast.visible;
@@ -95,11 +98,11 @@ AppSettingsPage({
   },
   onSearchResults(settingsStorage, query) {
     console.log(LOG_CLASS, 'on search:', query);
-    saveSearchSession(settingsStorage, { status: 'loading', query, results: [] });
     if (query.length < 3) {
-      saveSearchSession(settingsStorage, { status: 'idle', query, results: [] });
+      saveSearchSession(settingsStorage, { query, results: [], loading: false });
       return;
     }
+    saveSearchSession(settingsStorage, { query, results: [], loading: true });
     const url = "https://nominatim.openstreetmap.org/search?q=" + encodeURIComponent(query) + "&layer=natural&limit=10&format=jsonv2";
     console.log(LOG_CLASS, 'search url:', url);
     fetch(url)
@@ -111,11 +114,11 @@ AppSettingsPage({
           lon: parseFloat(item.lon),
           name: item.display_name,
         }));
-        saveSearchSession(settingsStorage, { status: 'done', query, results });
+        saveSearchSession(settingsStorage, { query, results, loading: false });
       })
       .catch((err) => {
         console.warn(LOG_CLASS, 'search failed:', err);
-        saveSearchSession(settingsStorage, { status: 'error', query, results: [] });
+        saveSearchSession(settingsStorage, { query, results: [], loading: false });
       });
   },
 });

@@ -1,8 +1,8 @@
 // Settings UI - rendering functions separated from AppSettingsPage
-import { setActiveTab  } from "../utils/phone-storage";
+import { setActiveTab } from "../utils/phone-storage";
 
 const LOG_CLASS = '[settings.ui]';
-
+const HINT_STYLE = { fontSize: "14px", color: "#64748b" };
 
 export function renderTabBar(activeTab, settingsStorage) {
   console.debug(LOG_CLASS, 'rendering tab bar...');
@@ -35,7 +35,7 @@ export function renderFavorites(settingsStorage, favorites, selectedBeach, onSel
   return View({}, [
     Text({ style: { fontSize: "18px", fontWeight: "bold", marginBottom: "16px" } }, "Favorites"),
     favorites.length === 0
-      ? Text({ style: { fontSize: "14px", color: "#64748b" } }, "No favorites yet. Use Search to add beaches.")
+      ? Text({ style: HINT_STYLE }, "No favorites yet. Use Search to add beaches.")
       : favorites.map((beach) => {
           const isSelected = selectedBeach && beach.name === selectedBeach.name;
           return View(
@@ -87,8 +87,60 @@ export function renderFavorites(settingsStorage, favorites, selectedBeach, onSel
   ]);
 }
 
-export function renderSearch(settingsStorage, searchQuery, searchStatus, searchResults, onSearch, onAdd) {
-  console.debug(LOG_CLASS, 'rendering search...', searchStatus, searchResults.length);
+function renderSearchResultList(settingsStorage, searchResults, onAdd) {
+  return View({}, [
+    Text({ style: { ...HINT_STYLE, marginBottom: "8px" } }, "Results:"),
+    ...searchResults.slice(0, 10).map((result) => {
+      const shortName = result.name.split(",")[0];
+      return View(
+        {
+          key: result.lat + "-" + result.lon,
+          style: {
+            padding: "12px",
+            marginTop: "4px",
+            marginBottom: "4px",
+            background: "#f8fafc",
+            borderRadius: "8px",
+            border: "1px solid #e2e8f0",
+          },
+        },
+        [
+          View({ style: { flex: 1 } }, [
+            Text({ style: { fontSize: "14px", marginBottom: "4px" } }, [shortName]),
+            Text({ style: { fontSize: "12px", color: "#64748b" } }, [result.lat.toFixed(4) + ", " + result.lon.toFixed(4)]),
+          ]),
+          Button({
+            label: "Add",
+            style: {
+              background: "#10b981",
+              color: "white",
+              padding: "6px 12px",
+              borderRadius: "4px",
+              fontSize: "12px",
+            },
+            onClick: () => onAdd(settingsStorage, result),
+          }),
+        ]
+      );
+    }),
+  ]);
+}
+
+function renderSearchBody(searchQuery, searchLoading, searchResults, settingsStorage, onAdd) {
+  if (searchLoading) {
+    return Text({ style: HINT_STYLE }, "Searching...");
+  }
+  if (searchResults.length > 0) {
+    return renderSearchResultList(settingsStorage, searchResults, onAdd);
+  }
+  if (searchQuery.length >= 3) {
+    return Text({ style: HINT_STYLE }, "No results found.");
+  }
+  return Text({ style: HINT_STYLE }, "Enter at least 3 characters to search.");
+}
+
+export function renderSearch(settingsStorage, searchQuery, searchLoading, searchResults, onSearch, onAdd) {
+  console.debug(LOG_CLASS, 'rendering search...', searchLoading, searchResults.length);
   return View({}, [
     TextInput({
       label: "Search Surf Location",
@@ -96,50 +148,6 @@ export function renderSearch(settingsStorage, searchQuery, searchStatus, searchR
       value: searchQuery,
       onChange: (val) => onSearch(settingsStorage, val),
     }),
-    searchStatus === 'loading'
-      ? Text({ style: { fontSize: "14px", color: "#64748b" } }, "Searching...")
-      : searchResults.length > 0
-      ? View({}, [
-          Text({ style: { fontSize: "14px", color: "#64748b", marginBottom: "8px" } }, "Results:"),
-          ...searchResults.slice(0, 10).map((result) => {
-            console.log("[setting-app] result: ", result);
-            const shortName = result.name.split(",")[0];
-            return View(
-              {
-                key: result.lat + "-" + result.lon,
-                style: {
-                  padding: "12px",
-                  marginTop: "4px",
-                  marginBottom: "4px",
-                  background: "#f8fafc",
-                  borderRadius: "8px",
-                  border: "1px solid #e2e8f0",
-                },
-              },
-              [
-                View({ style: { flex: 1 } }, [
-                  Text({ style: { fontSize: "14px", marginBottom: "4px" } }, [shortName]),
-                  Text({ style: { fontSize: "12px", color: "#64748b" } }, [result.lat.toFixed(4) + ", " + result.lon.toFixed(4)]),
-                ]),
-                Button({
-                  label: "Add",
-                  style: {
-                    background: "#10b981",
-                    color: "white",
-                    padding: "6px 12px",
-                    borderRadius: "4px",
-                    fontSize: "12px",
-                  },
-                  onClick: () => onAdd(settingsStorage, result),
-                }),
-              ]
-            );
-          }),
-        ])
-      : searchStatus === 'error'
-      ? Text({ style: { fontSize: "14px", color: "#64748b" } }, "Search failed. Try again.")
-      : searchQuery.length >= 3
-      ? Text({ style: { fontSize: "14px", color: "#64748b" } }, "No results found.")
-      : Text({ style: { fontSize: "14px", color: "#64748b" } }, "Enter at least 3 characters to search."),
+    renderSearchBody(searchQuery, searchLoading, searchResults, settingsStorage, onAdd),
   ]);
 }
