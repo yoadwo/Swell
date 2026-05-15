@@ -187,3 +187,24 @@ export function setupGestures(currentPageIndex) {
 - `GESTURE_RIGHT` - swipe right
 - `GESTURE_UP` - swipe up
 - `GESTURE_DOWN` - swipe down
+
+### UI Reload/Refresh
+There is no single method to force refresh of the UI in the Pages files or in the settings app.
+Don't bother calling "reload()", "load()", "refresh()" or any similar methods. This will result in a runtime error for method not found.
+Instead:
+- For Device App (Page files), either manually set the widgets, or manipulate the state object:
+  ```
+  Page({
+    state: {
+      text: 'Hello Zepp OS'
+    }
+    [...]
+  })
+  ```
+- For the Settings App, manipulate the setting storage, as said in the official docs: `Manipulate SettingsStorage in the registration event callback function to re-execute the build lifecycle function to trigger the UI update`
+  ```
+  onClick: () => {
+    // 5. Modify the data in settingsStorage in the callback function of the event
+    props.settingsStorage.setItem('testKey', toggleButtonMap[this.state.testKey])
+  }
+  ```

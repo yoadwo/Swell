@@ -38,6 +38,7 @@ Creating a Surf Forecast Analysis based on weather conditions, written for Amazf
 - Don't refactor without asking — make only requested changes
 - If you feel i have given you contradicting instructions at the session, or if a instructions contradicts the AGENTS, PRD or PLAN files - 
   do not proceed! prompt me at once and ask for clarification.
+- If you feel the instructions given are ambiguous, act as previous command: halt and prompt for clarification. 
 
 ## Pages Description
 
