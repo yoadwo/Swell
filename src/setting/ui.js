@@ -87,16 +87,18 @@ export function renderFavorites(settingsStorage, favorites, selectedBeach, onSel
   ]);
 }
 
-export function renderSearch(settingsStorage, searchQuery, searchResults, onSearch, onAdd) {
-  console.debug(LOG_CLASS, 'rendering search...');
+export function renderSearch(settingsStorage, searchQuery, searchStatus, searchResults, onSearch, onAdd) {
+  console.debug(LOG_CLASS, 'rendering search...', searchStatus, searchResults.length);
   return View({}, [
     TextInput({
       label: "Search Surf Location",
-      placeholder: "surf spots, i.e. arugam bay, sri lanka",
+      placeholder: "Surf spots, i.e. arugam bay, sri lanka",
       value: searchQuery,
       onChange: (val) => onSearch(settingsStorage, val),
     }),
-    searchResults.length > 0
+    searchStatus === 'loading'
+      ? Text({ style: { fontSize: "14px", color: "#64748b" } }, "Searching...")
+      : searchResults.length > 0
       ? View({}, [
           Text({ style: { fontSize: "14px", color: "#64748b", marginBottom: "8px" } }, "Results:"),
           ...searchResults.slice(0, 10).map((result) => {
@@ -134,6 +136,8 @@ export function renderSearch(settingsStorage, searchQuery, searchResults, onSear
             );
           }),
         ])
+      : searchStatus === 'error'
+      ? Text({ style: { fontSize: "14px", color: "#64748b" } }, "Search failed. Try again.")
       : searchQuery.length >= 3
       ? Text({ style: { fontSize: "14px", color: "#64748b" } }, "No results found.")
       : Text({ style: { fontSize: "14px", color: "#64748b" } }, "Enter at least 3 characters to search."),

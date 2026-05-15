@@ -16,8 +16,17 @@
 
 const SELECTED_BEACH_KEY = 'selectedBeach';
 const FAVORITES_KEY = 'favorites';
-const ACTIVE_TAB_KEY = 'activeTab'; 
+const ACTIVE_TAB_KEY = 'activeTab';
+const SEARCH_SESSION_KEY = 'searchSession';
+const SEARCH_QUERY_KEY = 'searchQuery';
+const SEARCH_RESULTS_KEY = 'searchResults';
+const TOAST_KEY = 'toast';
 const LOG_CLASS = '[phone-storage]';
+
+/** @typedef {'idle'|'loading'|'done'|'error'} SearchStatus */
+/** @typedef {{ status: SearchStatus, query: string, results: Array<{name:string,lat:number,lon:number}>, updatedAt?: number }} SearchSession */
+
+const EMPTY_SEARCH_SESSION = { status: 'idle', query: '', results: [] };
 
 /**
  * Save beach selection to settingsStorage
@@ -120,4 +129,85 @@ export function getActiveTab(settingsStorage) {
   const tab = settingsStorage.getItem(ACTIVE_TAB_KEY);
   console.debug(LOG_CLASS, 'Active tab get:', tab);
   return tab || "favorites";
+}
+
+function removeSearchKeys(settingsStorage) {
+  if (!settingsStorage?.removeItem) {
+    return;
+  }
+  if (settingsStorage.getItem(SEARCH_QUERY_KEY)) {
+    settingsStorage.removeItem(SEARCH_QUERY_KEY);
+  }
+  if (settingsStorage.getItem(SEARCH_RESULTS_KEY)) {
+    settingsStorage.removeItem(SEARCH_RESULTS_KEY);
+  }
+}
+
+/**
+ * @param {Object} settingsStorage
+ * @returns {SearchSession}
+ */
+export function getSearchSession(settingsStorage) {
+  if (!settingsStorage?.getItem) {
+    return { ...EMPTY_SEARCH_SESSION };
+  }
+
+  const raw = settingsStorage.getItem(SEARCH_SESSION_KEY);
+  if (!raw) {
+    console.debug(LOG_CLASS, 'No search session found');
+    return { ...EMPTY_SEARCH_SESSION };
+  }
+
+  const session = JSON.parse(raw);
+  console.debug(LOG_CLASS, 'Search session loaded:', session.status, session.results.length);
+  return session;
+}
+
+/**
+ * @param {Object} settingsStorage
+ * @param {SearchSession} session
+ */
+export function saveSearchSession(settingsStorage, session) {
+  if (!settingsStorage?.setItem) {
+    return;
+  }
+  removeSearchKeys(settingsStorage);
+  const payload = { ...session, updatedAt: Date.now() };
+  settingsStorage.setItem(SEARCH_SESSION_KEY, JSON.stringify(payload));
+  console.debug(LOG_CLASS, 'Search session saved:', payload.status, payload.results.length);
+}
+
+export function clearSearchSession(settingsStorage) {
+  removeSearchKeys(settingsStorage);
+  saveSearchSession(settingsStorage, { ...EMPTY_SEARCH_SESSION });
+  console.debug(LOG_CLASS, 'Search session cleared');
+}
+
+export function showToast(settingsStorage, message) {
+  if (!settingsStorage || !settingsStorage.setItem) {
+    return;
+  }
+  settingsStorage.setItem(TOAST_KEY, JSON.stringify({ visible: true, message }));
+  console.debug(LOG_CLASS, 'Toast shown:', message);
+}
+
+export function clearToast(settingsStorage) {
+  if (!settingsStorage || !settingsStorage.setItem) {
+    return;
+  }
+  settingsStorage.setItem(TOAST_KEY, JSON.stringify({ visible: false, message: "" }));
+  console.debug(LOG_CLASS, 'Toast cleared');
+}
+
+export function getToast(settingsStorage) {
+  if (!settingsStorage || !settingsStorage.getItem) {
+    return { visible: false, message: "" };
+  }
+  const raw = settingsStorage.getItem(TOAST_KEY);
+  if (!raw) {
+    return { visible: false, message: "" };
+  }
+  const toast = JSON.parse(raw);
+  console.debug(LOG_CLASS, 'Toast loaded:', toast);
+  return toast;
 }
