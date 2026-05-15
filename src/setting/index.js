@@ -30,7 +30,6 @@ AppSettingsPage({
     toastMessage: "",
   },
   build(props) {
-    debugger;
     console.debug(LOG_CLASS, 'build initiated');
     ensureFreshVisit(props.settingsStorage);
     this.getStorage(props);
